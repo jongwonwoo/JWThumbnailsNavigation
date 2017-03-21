@@ -28,6 +28,12 @@ class JWPhotoFetcher: NSObject, PHPhotoLibraryChangeObserver {
         return self.fetchResult
     }
     
+    func fetchPhoto(for asset: PHAsset, targetSize: CGSize, contentMode: PHImageContentMode, completion: @escaping (UIImage?) -> Swift.Void) {
+        self.imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, options: nil, resultHandler: { (result, info) in
+            completion(result)
+        })
+    }
+    
     func photosDidChange(_ handler: @escaping (PHFetchResult<PHAsset>?, PHFetchResultChangeDetails<PHAsset>?) -> Void) {
         self.changeHandler = handler
     }

@@ -18,7 +18,7 @@ class ViewController: UIViewController {
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>? {
         didSet {
-            //TODO:
+            thumbnailsNavigation.photos = photos
         }
     }
     
