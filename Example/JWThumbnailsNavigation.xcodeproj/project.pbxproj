@@ -29,7 +29,7 @@
 
 /* Begin PBXFileReference section */
 		116C14EF3C703D635D503C10 /* Pods-JWThumbnailsNavigation_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JWThumbnailsNavigation_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-JWThumbnailsNavigation_Example/Pods-JWThumbnailsNavigation_Example.debug.xcconfig"; sourceTree = "<group>"; };
-		1F765B8CDD187B70986AE968 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
+		1F765B8CDD187B70986AE968 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		607FACD01AFB9204008FA782 /* JWThumbnailsNavigation_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JWThumbnailsNavigation_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACD41AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		607FACD51AFB9204008FA782 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -40,9 +40,9 @@
 		607FACE51AFB9204008FA782 /* JWThumbnailsNavigation_Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JWThumbnailsNavigation_Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACEA1AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		607FACEB1AFB9204008FA782 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
-		8744DE541EB93C0177834B0F /* JWThumbnailsNavigation.podspec */ = {isa = PBXFileReference; includeInIndex = 1; name = JWThumbnailsNavigation.podspec; path = ../JWThumbnailsNavigation.podspec; sourceTree = "<group>"; };
+		8744DE541EB93C0177834B0F /* JWThumbnailsNavigation.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = JWThumbnailsNavigation.podspec; path = ../JWThumbnailsNavigation.podspec; sourceTree = "<group>"; };
 		88E2150A9C10272E7621FD03 /* Pods-JWThumbnailsNavigation_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JWThumbnailsNavigation_Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-JWThumbnailsNavigation_Tests/Pods-JWThumbnailsNavigation_Tests.release.xcconfig"; sourceTree = "<group>"; };
-		8C0C875CD9302E59CB468AA7 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		8C0C875CD9302E59CB468AA7 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		97DBAFA348CC4ABFECC1A94A /* Pods-JWThumbnailsNavigation_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JWThumbnailsNavigation_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-JWThumbnailsNavigation_Tests/Pods-JWThumbnailsNavigation_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		AE17B1E344AAB8DAB7353F7A /* Pods-JWThumbnailsNavigation_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JWThumbnailsNavigation_Example.release.xcconfig"; path = "Pods/Target Support Files/Pods-JWThumbnailsNavigation_Example/Pods-JWThumbnailsNavigation_Example.release.xcconfig"; sourceTree = "<group>"; };
 		B8E45CCA967FDD1BA23B21E8 /* Pods_JWThumbnailsNavigation_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_JWThumbnailsNavigation_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -215,10 +215,12 @@
 				TargetAttributes = {
 					607FACCF1AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
+						DevelopmentTeam = QFKRB33RPM;
 						LastSwiftMigration = 0820;
 					};
 					607FACE41AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
+						DevelopmentTeam = QFKRB33RPM;
 						LastSwiftMigration = 0820;
 						TestTargetID = 607FACCF1AFB9204008FA782;
 					};
@@ -496,6 +498,7 @@
 			baseConfigurationReference = 116C14EF3C703D635D503C10 /* Pods-JWThumbnailsNavigation_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = QFKRB33RPM;
 				INFOPLIST_FILE = JWThumbnailsNavigation/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -510,6 +513,7 @@
 			baseConfigurationReference = AE17B1E344AAB8DAB7353F7A /* Pods-JWThumbnailsNavigation_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = QFKRB33RPM;
 				INFOPLIST_FILE = JWThumbnailsNavigation/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -523,6 +527,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 97DBAFA348CC4ABFECC1A94A /* Pods-JWThumbnailsNavigation_Tests.debug.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = QFKRB33RPM;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -543,6 +548,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 88E2150A9C10272E7621FD03 /* Pods-JWThumbnailsNavigation_Tests.release.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = QFKRB33RPM;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
