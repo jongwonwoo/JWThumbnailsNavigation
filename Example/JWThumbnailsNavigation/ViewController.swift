@@ -13,6 +13,7 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var photoView: UIImageView!
     @IBOutlet weak var toolbarView: UIView!
+    weak var thumbnailsNavigation: JWThumbnailsNavigation!
     
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>? {
@@ -23,6 +24,8 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.makeThumbnailsNavigation()
         
         self.requestPhotoLibraryAuthorization(authorized: { [unowned self] in
             DispatchQueue.main.async {
@@ -39,6 +42,18 @@ class ViewController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func makeThumbnailsNavigation() {
+        let thumbnailsNavigation = JWThumbnailsNavigation.init(frame: CGRect.zero)
+        toolbarView.addSubview(thumbnailsNavigation)
+        
+        thumbnailsNavigation.translatesAutoresizingMaskIntoConstraints = false
+        thumbnailsNavigation.leadingAnchor.constraint(equalTo: self.toolbarView.leadingAnchor, constant: 0).isActive = true
+        thumbnailsNavigation.trailingAnchor.constraint(equalTo: self.toolbarView.trailingAnchor, constant: 0).isActive = true
+        thumbnailsNavigation.topAnchor.constraint(equalTo: self.toolbarView.topAnchor, constant: 0).isActive = true
+        thumbnailsNavigation.bottomAnchor.constraint(equalTo: self.toolbarView.bottomAnchor, constant: 0).isActive = true
+        self.thumbnailsNavigation = thumbnailsNavigation
     }
 }
 
