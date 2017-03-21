@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'JWThumbnailsNavigation_Example' do
+  pod 'JWThumbnailsNavigation', :path => '../'
+
+  target 'JWThumbnailsNavigation_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
