@@ -1,0 +1,6 @@
+framework module JWThumbnailsNavigation {
+  umbrella header "JWThumbnailsNavigation-umbrella.h"
+
+  export *
+  module * { export * }
+}

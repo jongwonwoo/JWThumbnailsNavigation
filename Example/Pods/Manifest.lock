@@ -1,0 +1,16 @@
+PODS:
+  - JWThumbnailsNavigation (0.1.0)
+
+DEPENDENCIES:
+  - JWThumbnailsNavigation (from `../`)
+
+EXTERNAL SOURCES:
+  JWThumbnailsNavigation:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  JWThumbnailsNavigation: fa47900257521740e8d5eb741295e76c04240a9b
+
+PODFILE CHECKSUM: cef86cdd268ba1d8a164d046b013dc7ae457335c
+
+COCOAPODS: 1.2.0

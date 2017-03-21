@@ -1,0 +1,6 @@
+framework module Pods_JWThumbnailsNavigation_Tests {
+  umbrella header "Pods-JWThumbnailsNavigation_Tests-umbrella.h"
+
+  export *
+  module * { export * }
+}
