@@ -99,8 +99,10 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
 
 extension JWThumbnailsNavigation : UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let height = self.bounds.height
+        let width = height * 0.5
         
-        return CGSize(width: 50, height: 50)
+        return CGSize(width: width, height: height)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
@@ -128,6 +130,7 @@ class ImageCollectionViewCell: UICollectionViewCell {
     
     private func makeImageView() {
         let imageView = UIImageView.init(frame: self.contentView.bounds)
+        imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
         self.contentView.addSubview(imageView)
