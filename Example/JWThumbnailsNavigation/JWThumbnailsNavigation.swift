@@ -24,7 +24,7 @@ class JWThumbnailsNavigation: UIView {
     
     fileprivate let photoFetcher = JWPhotoFetcher()
     
-    fileprivate var lastIndexOfSelectedItem: Int = 0
+    fileprivate var lastIndexOfSelectedItem: Int = -1
     fileprivate var holdOnFire: Bool = false
     
     var photos: PHFetchResult<PHAsset>? {
@@ -161,7 +161,13 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout {
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 0.0, left: 0.0, bottom: 0.0, right: 0.0)
+        var inset = CGFloat(0.0)
+        let viewWidth = self.bounds.width
+        let viewHeight = self.bounds.height
+        let cellWidth = viewHeight * 0.5
+        inset = (viewWidth - cellWidth) / 2
+        
+        return UIEdgeInsets(top: 0.0, left: inset, bottom: 0.0, right: inset)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
