@@ -9,12 +9,21 @@
 import UIKit
 import Photos
 
+@objc protocol JWThumbnailsNavigationDelegate {
+    
+    @objc optional func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int)
+    
+}
+
 class JWThumbnailsNavigation: UIView {
 
+    weak var delegate: JWThumbnailsNavigationDelegate?
+    
     fileprivate let reuseIdentifier = "ThumbnailCell"
     fileprivate weak var thumbnailsCollectionView: UICollectionView!
     
     fileprivate let photoFetcher = JWPhotoFetcher()
+    fileprivate var lastIndexOfSelectedItem: Int = 0
     
     var photos: PHFetchResult<PHAsset>? {
         didSet {
@@ -94,10 +103,40 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
         
         return cell
     }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        //TODO; 선택한 셀을 가운데로 이동
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        print(#function)
+        selectThumbnail()
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate {
+            print(#function)
+            selectThumbnail()
+        }
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        print(#function)
+        selectThumbnail()
+    }
 
+    func selectThumbnail() {
+        if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
+            if lastIndexOfSelectedItem != indexPath.item {
+                print("didSelect: \(indexPath.item)")
+                lastIndexOfSelectedItem = indexPath.item
+                delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
+            }
+        }
+    }
 }
 
-extension JWThumbnailsNavigation : UICollectionViewDelegateFlowLayout {
+extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let height = self.bounds.height
         let width = height * 0.5
@@ -115,7 +154,7 @@ extension JWThumbnailsNavigation : UICollectionViewDelegateFlowLayout {
 }
 
 
-class ImageCollectionViewCell: UICollectionViewCell {
+private class ImageCollectionViewCell: UICollectionViewCell {
     private var imageView: UIImageView?
     
     var image: UIImage? {
@@ -139,5 +178,15 @@ class ImageCollectionViewCell: UICollectionViewCell {
         imageView.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 0).isActive = true
         imageView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: 0).isActive = true
         self.imageView = imageView
+    }
+}
+
+private extension UICollectionView {
+    func indexPathForVisibleCenter() -> IndexPath? {
+        var visibleRect = CGRect()
+        visibleRect.origin = self.contentOffset
+        visibleRect.size = self.bounds.size
+        let visiblePoint = CGPoint(x: visibleRect.midX, y: visibleRect.midY)
+        return self.indexPathForItem(at: visiblePoint)
     }
 }

@@ -53,7 +53,27 @@ class ViewController: UIViewController {
         thumbnailsNavigation.trailingAnchor.constraint(equalTo: self.toolbarView.trailingAnchor, constant: 0).isActive = true
         thumbnailsNavigation.topAnchor.constraint(equalTo: self.toolbarView.topAnchor, constant: 0).isActive = true
         thumbnailsNavigation.bottomAnchor.constraint(equalTo: self.toolbarView.bottomAnchor, constant: 0).isActive = true
+        
         self.thumbnailsNavigation = thumbnailsNavigation
+        thumbnailsNavigation.delegate = self
+    }
+}
+
+extension ViewController: JWThumbnailsNavigationDelegate {
+    func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int) {
+        guard let photos = self.photos else { return }
+        
+        if 0 <= index && index < photos.count {
+            let asset = photos[index]
+            let itemSize = photoView.bounds.size
+            let scale = UIScreen.main.scale
+            let targetSize = CGSize.init(width: itemSize.width * scale, height: itemSize.height * scale)
+            self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, completion: { image in
+                DispatchQueue.main.async {
+                    self.photoView.image = image
+                }
+            })
+        }
     }
 }
 
