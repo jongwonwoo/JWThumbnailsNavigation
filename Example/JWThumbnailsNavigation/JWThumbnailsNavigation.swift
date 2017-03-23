@@ -23,7 +23,9 @@ class JWThumbnailsNavigation: UIView {
     fileprivate weak var thumbnailsCollectionView: UICollectionView!
     
     fileprivate let photoFetcher = JWPhotoFetcher()
+    
     fileprivate var lastIndexOfSelectedItem: Int = 0
+    fileprivate var holdOnFire: Bool = false
     
     var photos: PHFetchResult<PHAsset>? {
         didSet {
@@ -105,12 +107,22 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        //TODO; 선택한 셀을 가운데로 이동
+        fireEventOnSelectThumbnailIndex(indexPath.item)
+        holdOnFire = true
+        
+        collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         print(#function)
-        selectThumbnail()
+        if !holdOnFire {
+            selectThumbnail()
+        }
+    }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        print(#function)
+        holdOnFire = false
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
@@ -127,11 +139,15 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
 
     func selectThumbnail() {
         if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
-            if lastIndexOfSelectedItem != indexPath.item {
-                print("didSelect: \(indexPath.item)")
-                lastIndexOfSelectedItem = indexPath.item
-                delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
-            }
+            fireEventOnSelectThumbnailIndex(indexPath.item)
+        }
+    }
+    
+    func fireEventOnSelectThumbnailIndex(_ index: Int) {
+        if lastIndexOfSelectedItem != index {
+            print("didSelect: \(index)")
+            lastIndexOfSelectedItem = index
+            delegate?.thumbnailsNavigation?(self, didSelectItemAt: index)
         }
     }
 }
