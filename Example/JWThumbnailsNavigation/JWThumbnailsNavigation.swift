@@ -26,7 +26,9 @@ class JWThumbnailsNavigation: UIView {
     fileprivate let photoFetcher = JWPhotoFetcher()
     
     fileprivate var lastIndexOfScrollingItem: Int = -1
-    fileprivate var holdOnFire: Bool = false
+    fileprivate var holdOnFireDidScrollEvent: Bool = false
+    
+    fileprivate var lastIndexOfSelectedItem: Int = -1
     
     fileprivate var photos: PHFetchResult<PHAsset>?
     
@@ -120,14 +122,14 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         fireEventOnSelectThumbnailIndex(indexPath.item)
-        holdOnFire = true
+        holdOnFireDidScrollEvent = true
         
         collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         print(#function)
-        if !holdOnFire {
+        if !holdOnFireDidScrollEvent {
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
                 if lastIndexOfScrollingItem != indexPath.item {
                     print("didScroll: \(indexPath.item)")
@@ -140,7 +142,7 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         print(#function)
-        holdOnFire = false
+        holdOnFireDidScrollEvent = false
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
@@ -162,8 +164,11 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func fireEventOnSelectThumbnailIndex(_ index: Int) {
-        print("didSelect: \(index)")
-        delegate?.thumbnailsNavigation?(self, didSelectItemAt: index)
+        if lastIndexOfSelectedItem != index {
+            print("didSelect: \(index)")
+            lastIndexOfSelectedItem = index
+            delegate?.thumbnailsNavigation?(self, didSelectItemAt: index)
+        }
     }
 }
 
