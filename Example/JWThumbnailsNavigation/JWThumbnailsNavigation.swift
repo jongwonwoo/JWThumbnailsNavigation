@@ -25,7 +25,7 @@ class JWThumbnailsNavigation: UIView {
     
     fileprivate let photoFetcher = JWPhotoFetcher()
     
-    fileprivate var lastIndexOfSelectedItem: Int = -1
+    fileprivate var lastIndexOfScrollingItem: Int = -1
     fileprivate var holdOnFire: Bool = false
     
     fileprivate var photos: PHFetchResult<PHAsset>?
@@ -128,7 +128,13 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         print(#function)
         if !holdOnFire {
-            selectThumbnail()
+            if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
+                if lastIndexOfScrollingItem != indexPath.item {
+                    print("didScroll: \(indexPath.item)")
+                    lastIndexOfScrollingItem = indexPath.item
+                    delegate?.thumbnailsNavigation?(self, didScrollItemAt: indexPath.item)
+                }
+            }
         }
     }
     
@@ -156,11 +162,8 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func fireEventOnSelectThumbnailIndex(_ index: Int) {
-        if lastIndexOfSelectedItem != index {
-            print("didSelect: \(index)")
-            lastIndexOfSelectedItem = index
-            delegate?.thumbnailsNavigation?(self, didSelectItemAt: index)
-        }
+        print("didSelect: \(index)")
+        delegate?.thumbnailsNavigation?(self, didSelectItemAt: index)
     }
 }
 

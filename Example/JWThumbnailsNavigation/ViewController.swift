@@ -22,6 +22,8 @@ class ViewController: UIViewController {
         }
     }
     
+    fileprivate var indexOfCurrentPhoto: Int = -1
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -62,11 +64,17 @@ class ViewController: UIViewController {
 
 extension ViewController: JWThumbnailsNavigationDelegate {
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int) {
-        showPhotoAtInex(index)
+        if indexOfCurrentPhoto != index {
+            showPhotoAtInex(index)
+            indexOfCurrentPhoto = index
+        }
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int) {
-        showPhotoAtInex(index)
+        if indexOfCurrentPhoto != index {
+            showPhotoAtInex(index)
+            indexOfCurrentPhoto = index
+        }
     }
     
     func showPhotoAtInex(_ index: Int) {
