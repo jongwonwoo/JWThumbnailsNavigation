@@ -11,6 +11,7 @@ import Photos
 
 @objc protocol JWThumbnailsNavigationDelegate {
     
+    @objc optional func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int)
     @objc optional func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int)
     
 }
@@ -20,16 +21,27 @@ class JWThumbnailsNavigation: UIView {
     weak var delegate: JWThumbnailsNavigationDelegate?
     
     fileprivate let reuseIdentifier = "ThumbnailCell"
-    fileprivate weak var thumbnailsCollectionView: UICollectionView!
+    fileprivate weak var thumbnailsCollectionView: CustomCollectionView!
     
     fileprivate let photoFetcher = JWPhotoFetcher()
     
     fileprivate var lastIndexOfSelectedItem: Int = -1
     fileprivate var holdOnFire: Bool = false
     
-    var photos: PHFetchResult<PHAsset>? {
-        didSet {
-            thumbnailsCollectionView.reloadData()
+    fileprivate var photos: PHFetchResult<PHAsset>?
+    
+    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int? = 0) {
+        self.photos = photos
+        
+        self.thumbnailsCollectionView.reloadDataWithCompletion {
+            self.thumbnailsCollectionView.reloadDataCompletionBlock = nil
+            
+            if let photos = self.photos, let indexOfSelectedItem = indexOfSelectedItem {
+                if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
+                    self.fireEventOnSelectThumbnailIndex(indexOfSelectedItem)
+                    self.thumbnailsCollectionView.selectItem(at: IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false, scrollPosition: .centeredHorizontally)
+                }
+            }
         }
     }
     
@@ -59,7 +71,7 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         
-        let collectionView = UICollectionView.init(frame: CGRect.zero, collectionViewLayout: layout)
+        let collectionView = CustomCollectionView.init(frame: CGRect.zero, collectionViewLayout: layout)
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(ImageCollectionViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
@@ -175,6 +187,21 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout {
     }
 }
 
+private class CustomCollectionView: UICollectionView {
+    
+    var reloadDataCompletionBlock: (() -> Void)?
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        self.reloadDataCompletionBlock?()
+    }
+    
+    func reloadDataWithCompletion(_ completion:@escaping () -> Void) {
+        reloadDataCompletionBlock = completion
+        super.reloadData()
+    }
+}
 
 private class ImageCollectionViewCell: UICollectionViewCell {
     private var imageView: UIImageView?

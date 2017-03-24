@@ -18,7 +18,7 @@ class ViewController: UIViewController {
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>? {
         didSet {
-            thumbnailsNavigation.photos = photos
+            thumbnailsNavigation.setPhotos(self.photos)
         }
     }
     
@@ -56,11 +56,20 @@ class ViewController: UIViewController {
         
         self.thumbnailsNavigation = thumbnailsNavigation
         thumbnailsNavigation.delegate = self
+        
     }
 }
 
 extension ViewController: JWThumbnailsNavigationDelegate {
+    func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int) {
+        showPhotoAtInex(index)
+    }
+    
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int) {
+        showPhotoAtInex(index)
+    }
+    
+    func showPhotoAtInex(_ index: Int) {
         guard let photos = self.photos else { return }
         
         if 0 <= index && index < photos.count {
