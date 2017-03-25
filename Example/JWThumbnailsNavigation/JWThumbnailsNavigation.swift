@@ -110,7 +110,7 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
             let itemSize = collectionViewLayout.itemSize
             let scale = UIScreen.main.scale
             let targetSize = CGSize.init(width: itemSize.width * scale, height: itemSize.height * scale)
-            self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, completion: { image in
+            self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, onlyLowQuality: true, completion: { image, isLowQuality in
                 DispatchQueue.main.async {
                     cell.image = image;
                 }

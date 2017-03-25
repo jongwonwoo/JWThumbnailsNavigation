@@ -77,7 +77,7 @@ extension ViewController: JWThumbnailsNavigationDelegate {
         }
     }
     
-    func showPhotoAtInex(_ index: Int) {
+    func showPhotoAtInex(_ index: Int, lowQuality: Bool = false) {
         guard let photos = self.photos else { return }
         
         if 0 <= index && index < photos.count {
@@ -85,8 +85,9 @@ extension ViewController: JWThumbnailsNavigationDelegate {
             let itemSize = photoView.bounds.size
             let scale = UIScreen.main.scale
             let targetSize = CGSize.init(width: itemSize.width * scale, height: itemSize.height * scale)
-            self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, completion: { image in
+            self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, onlyLowQuality: lowQuality, completion: { image, isLowQuality in
                 DispatchQueue.main.async {
+                    print("showPhoto>>>>>: \(index), low quality: \(isLowQuality)")
                     self.photoView.image = image
                 }
             })
