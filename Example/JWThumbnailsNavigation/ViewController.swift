@@ -13,7 +13,9 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var photoView: UIImageView!
     @IBOutlet weak var toolbarView: UIView!
+    
     weak var thumbnailsNavigation: JWThumbnailsNavigation!
+    fileprivate var indexOfDraggingPhoto: Int = -1
     
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>? {
@@ -21,9 +23,6 @@ class ViewController: UIViewController {
             thumbnailsNavigation.setPhotos(self.photos)
         }
     }
-    
-    fileprivate var indexOfScrollingPhoto: Int = -1
-    fileprivate var indexOfSelectedPhoto: Int = -1
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,36 +58,26 @@ class ViewController: UIViewController {
         
         self.thumbnailsNavigation = thumbnailsNavigation
         thumbnailsNavigation.delegate = self
-        
     }
 }
 
 extension ViewController: JWThumbnailsNavigationDelegate {
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didDragItemAt index: Int) {
-        if indexOfScrollingPhoto != index {
-            print("didDrag: \(index)")
-            showPhotoAtInex(index, quality: .onlyHighQuality)
-            indexOfScrollingPhoto = index
-        }
-        
-        indexOfSelectedPhoto = -1
+        print("didDrag: \(index)")
+        showPhotoAtInex(index, quality: .onlyHighQuality)
+        indexOfDraggingPhoto = index
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int) {
-        if indexOfScrollingPhoto != index {
-            print("didScroll: \(index)")
-            showPhotoAtInex(index, quality: .onlyLowQuality)
-            indexOfScrollingPhoto = index
-        }
-        
-        indexOfSelectedPhoto = -1
+        print("didScroll: \(index)")
+        showPhotoAtInex(index, quality: .onlyLowQuality)
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int) {
-        if indexOfSelectedPhoto != index {
+        if indexOfDraggingPhoto != index {
             print("didSelect: \(index)")
             showPhotoAtInex(index, quality: .lowAndHighQuality)
-            indexOfSelectedPhoto = index
+            indexOfDraggingPhoto = index
         }
     }
     
