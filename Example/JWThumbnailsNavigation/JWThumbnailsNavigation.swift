@@ -195,6 +195,8 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
         case .stop:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
                 fireEventOnSelectThumbnailIndex(indexPath.item)
+                
+                self.thumbnailsCollectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
             }
         default:
             break
