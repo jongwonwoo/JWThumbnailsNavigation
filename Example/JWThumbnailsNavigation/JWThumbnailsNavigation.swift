@@ -11,6 +11,7 @@ import Photos
 
 @objc protocol JWThumbnailsNavigationDelegate {
     
+    @objc optional func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didDragItemAt index: Int)
     @objc optional func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int)
     @objc optional func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int)
     
@@ -24,14 +25,10 @@ class JWThumbnailsNavigation: UIView {
     fileprivate weak var thumbnailsCollectionView: CustomCollectionView!
     
     fileprivate var scrollStateMachine: JWScrollStateMachine = JWScrollStateMachine()
-    
-    fileprivate let photoFetcher = JWPhotoFetcher()
-    
     fileprivate var lastIndexOfScrollingItem: Int = -1
-    fileprivate var holdOnFireDidScrollEvent: Bool = false
-    
     fileprivate var lastIndexOfSelectedItem: Int = -1
     
+    fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>?
     
     func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int? = 0) {
@@ -126,85 +123,88 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         fireEventOnSelectThumbnailIndex(indexPath.item)
-        holdOnFireDidScrollEvent = true
         
         collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
     }
-    
+}
+
+extension JWThumbnailsNavigation {
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        print(#function)
+        //print(#function)
         scrollStateMachine.scrolling(.beginDragging)
     }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        print(#function)
+        //print(#function)
         scrollStateMachine.scrolling(.willEndDragging)
     }
     
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
-        print(#function)
+        //print(#function)
         scrollStateMachine.scrolling(.willBeginDecelerating)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print(#function)
+        //print(#function)
         scrollStateMachine.scrolling(.didScroll)
-        
-        if !holdOnFireDidScrollEvent {
+    }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        //print(#function)
+        scrollStateMachine.scrolling(.didEndScrollingAnimation)
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        //print(#function)
+        scrollStateMachine.scrolling(decelerate ? .didEndDraggingAndDecelerating : .didEndDraggingAndNotDecelerating)
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        //print(#function)
+        scrollStateMachine.scrolling(.didEndDecelerating)
+    }
+}
+
+extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
+    func scrollStateMachine(_ stateMachine: JWScrollStateMachine, didChangeState state: JWScrollState) {
+        //dump(state.rawValue)
+        switch state {
+        case .dragging:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
                 if lastIndexOfScrollingItem != indexPath.item {
-                    print("navigation didScroll: \(indexPath.item)")
+                    //print("navigation didDrag: \(indexPath.item)")
+                    lastIndexOfScrollingItem = indexPath.item
+                    delegate?.thumbnailsNavigation?(self, didDragItemAt: indexPath.item)
+                    
+                    lastIndexOfSelectedItem = -1
+                }
+            }
+        case .decelerating:
+            if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
+                if lastIndexOfScrollingItem != indexPath.item {
+                    //print("navigation didScroll: \(indexPath.item)")
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didScrollItemAt: indexPath.item)
                     
                     lastIndexOfSelectedItem = -1
                 }
             }
-        }
-    }
-    
-    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-        print(#function)
-        scrollStateMachine.scrolling(.didEndScrollingAnimation)
-        
-        holdOnFireDidScrollEvent = false
-    }
-    
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        print(#function)
-        scrollStateMachine.scrolling(decelerate ? .didEndDraggingAndDecelerating : .didEndDraggingAndNotDecelerating)
-        
-        if !decelerate {
-            selectThumbnail()
-        }
-    }
-    
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        print(#function)
-        scrollStateMachine.scrolling(.didEndDecelerating)
-        
-        selectThumbnail()
-    }
-
-    func selectThumbnail() {
-        if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
-            fireEventOnSelectThumbnailIndex(indexPath.item)
+        case .stop:
+            if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
+                fireEventOnSelectThumbnailIndex(indexPath.item)
+            }
+        default:
+            break
         }
     }
     
     func fireEventOnSelectThumbnailIndex(_ index: Int) {
         if lastIndexOfSelectedItem != index {
-            print("navigation didSelect: \(index)")
+            //print("navigation didSelect: \(index)")
             lastIndexOfSelectedItem = index
             delegate?.thumbnailsNavigation?(self, didSelectItemAt: index)
         }
-    }
-}
-
-extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
-    func scrollStateMachine(_ stateMachine: JWScrollStateMachine, didChangeState state: JWScrollState) {
-        dump(state.rawValue)
     }
 }
 

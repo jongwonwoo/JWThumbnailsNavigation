@@ -64,6 +64,16 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: JWThumbnailsNavigationDelegate {
+    func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didDragItemAt index: Int) {
+        if indexOfScrollingPhoto != index {
+            print("didDrag: \(index)")
+            showPhotoAtInex(index, lowQuality: true)
+            indexOfScrollingPhoto = index
+        }
+        
+        indexOfSelectedPhoto = -1
+    }
+    
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int) {
         if indexOfScrollingPhoto != index {
             print("didScroll: \(index)")
