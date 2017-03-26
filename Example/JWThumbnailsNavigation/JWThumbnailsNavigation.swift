@@ -23,6 +23,8 @@ class JWThumbnailsNavigation: UIView {
     fileprivate let reuseIdentifier = "ThumbnailCell"
     fileprivate weak var thumbnailsCollectionView: CustomCollectionView!
     
+    fileprivate var scrollStateMachine: JWScrollStateMachine = JWScrollStateMachine()
+    
     fileprivate let photoFetcher = JWPhotoFetcher()
     
     fileprivate var lastIndexOfScrollingItem: Int = -1
@@ -63,6 +65,8 @@ class JWThumbnailsNavigation: UIView {
         self.backgroundColor = .red
         
         self.makeCollectionView()
+        
+        self.scrollStateMachine.delegate = self
     }
     
 }
@@ -127,14 +131,34 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
         collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)
     }
     
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        print(#function)
+        scrollStateMachine.scrolling(.beginDragging)
+    }
+    
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        print(#function)
+        scrollStateMachine.scrolling(.willEndDragging)
+    }
+    
+    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
+        print(#function)
+        scrollStateMachine.scrolling(.willBeginDecelerating)
+    }
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         print(#function)
+        scrollStateMachine.scrolling(.didScroll)
+        
         if !holdOnFireDidScrollEvent {
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
                 if lastIndexOfScrollingItem != indexPath.item {
-                    print("didScroll: \(indexPath.item)")
+                    print("navigation didScroll: \(indexPath.item)")
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didScrollItemAt: indexPath.item)
+                    
+                    lastIndexOfSelectedItem = -1
                 }
             }
         }
@@ -142,18 +166,24 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         print(#function)
+        scrollStateMachine.scrolling(.didEndScrollingAnimation)
+        
         holdOnFireDidScrollEvent = false
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        print(#function)
+        scrollStateMachine.scrolling(decelerate ? .didEndDraggingAndDecelerating : .didEndDraggingAndNotDecelerating)
+        
         if !decelerate {
-            print(#function)
             selectThumbnail()
         }
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         print(#function)
+        scrollStateMachine.scrolling(.didEndDecelerating)
+        
         selectThumbnail()
     }
 
@@ -165,10 +195,16 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     
     func fireEventOnSelectThumbnailIndex(_ index: Int) {
         if lastIndexOfSelectedItem != index {
-            print("didSelect: \(index)")
+            print("navigation didSelect: \(index)")
             lastIndexOfSelectedItem = index
             delegate?.thumbnailsNavigation?(self, didSelectItemAt: index)
         }
+    }
+}
+
+extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
+    func scrollStateMachine(_ stateMachine: JWScrollStateMachine, didChangeState state: JWScrollState) {
+        dump(state.rawValue)
     }
 }
 

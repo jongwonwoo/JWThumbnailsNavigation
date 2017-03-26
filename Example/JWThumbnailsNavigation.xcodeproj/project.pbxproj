@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0CAEFE141E8118BA00C96984 /* JWPhotoFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CAEFE131E8118BA00C96984 /* JWPhotoFetcher.swift */; };
 		0CAEFE161E811C7900C96984 /* JWThumbnailsNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CAEFE151E811C7900C96984 /* JWThumbnailsNavigation.swift */; };
+		0F8AB22E1E874A8800AD6E40 /* JWScrollStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8AB22D1E874A8800AD6E40 /* JWScrollStateMachine.swift */; };
 		607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD51AFB9204008FA782 /* AppDelegate.swift */; };
 		607FACD81AFB9204008FA782 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD71AFB9204008FA782 /* ViewController.swift */; };
 		607FACDB1AFB9204008FA782 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 607FACD91AFB9204008FA782 /* Main.storyboard */; };
@@ -32,6 +33,7 @@
 /* Begin PBXFileReference section */
 		0CAEFE131E8118BA00C96984 /* JWPhotoFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JWPhotoFetcher.swift; sourceTree = "<group>"; };
 		0CAEFE151E811C7900C96984 /* JWThumbnailsNavigation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JWThumbnailsNavigation.swift; sourceTree = "<group>"; };
+		0F8AB22D1E874A8800AD6E40 /* JWScrollStateMachine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JWScrollStateMachine.swift; sourceTree = "<group>"; };
 		116C14EF3C703D635D503C10 /* Pods-JWThumbnailsNavigation_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JWThumbnailsNavigation_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-JWThumbnailsNavigation_Example/Pods-JWThumbnailsNavigation_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		1F765B8CDD187B70986AE968 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		607FACD01AFB9204008FA782 /* JWThumbnailsNavigation_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JWThumbnailsNavigation_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -114,6 +116,7 @@
 				607FACD31AFB9204008FA782 /* Supporting Files */,
 				0CAEFE131E8118BA00C96984 /* JWPhotoFetcher.swift */,
 				0CAEFE151E811C7900C96984 /* JWThumbnailsNavigation.swift */,
+				0F8AB22D1E874A8800AD6E40 /* JWScrollStateMachine.swift */,
 			);
 			name = "Example for JWThumbnailsNavigation";
 			path = JWThumbnailsNavigation;
@@ -371,6 +374,7 @@
 			files = (
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				0CAEFE141E8118BA00C96984 /* JWPhotoFetcher.swift in Sources */,
+				0F8AB22E1E874A8800AD6E40 /* JWScrollStateMachine.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,
 				0CAEFE161E811C7900C96984 /* JWThumbnailsNavigation.swift in Sources */,
 			);
