@@ -67,7 +67,7 @@ extension ViewController: JWThumbnailsNavigationDelegate {
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didDragItemAt index: Int) {
         if indexOfScrollingPhoto != index {
             print("didDrag: \(index)")
-            showPhotoAtInex(index, lowQuality: true)
+            showPhotoAtInex(index, quality: .onlyHighQuality)
             indexOfScrollingPhoto = index
         }
         
@@ -77,7 +77,7 @@ extension ViewController: JWThumbnailsNavigationDelegate {
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int) {
         if indexOfScrollingPhoto != index {
             print("didScroll: \(index)")
-            showPhotoAtInex(index, lowQuality: true)
+            showPhotoAtInex(index, quality: .onlyLowQuality)
             indexOfScrollingPhoto = index
         }
         
@@ -87,12 +87,12 @@ extension ViewController: JWThumbnailsNavigationDelegate {
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int) {
         if indexOfSelectedPhoto != index {
             print("didSelect: \(index)")
-            showPhotoAtInex(index)
+            showPhotoAtInex(index, quality: .lowAndHighQuality)
             indexOfSelectedPhoto = index
         }
     }
     
-    func showPhotoAtInex(_ index: Int, lowQuality: Bool = false) {
+    func showPhotoAtInex(_ index: Int, quality: JWPhotoQuality) {
         guard let photos = self.photos else { return }
         
         if 0 <= index && index < photos.count {
@@ -100,7 +100,7 @@ extension ViewController: JWThumbnailsNavigationDelegate {
             let itemSize = photoView.bounds.size
             let scale = UIScreen.main.scale
             let targetSize = CGSize.init(width: itemSize.width * scale, height: itemSize.height * scale)
-            self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, onlyLowQuality: lowQuality, completion: { image, isLowQuality in
+            self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, quality: quality, completion: { image, isLowQuality in
                 DispatchQueue.main.async {
                     print("showPhoto>>>>>: \(index), low quality: \(isLowQuality)")
                     self.photoView.image = image
