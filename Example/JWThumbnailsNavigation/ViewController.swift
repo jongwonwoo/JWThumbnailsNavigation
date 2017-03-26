@@ -64,24 +64,24 @@ class ViewController: UIViewController {
 extension ViewController: JWThumbnailsNavigationDelegate {
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didDragItemAt index: Int) {
         print("didDrag: \(index)")
-        showPhotoAtInex(index, quality: .onlyHighQuality)
+        showPhotoAtInex(index, preferredLowQuality: false)
         indexOfDraggingPhoto = index
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int) {
         print("didScroll: \(index)")
-        showPhotoAtInex(index, quality: .onlyLowQuality)
+        showPhotoAtInex(index, preferredLowQuality: true)
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int) {
         if indexOfDraggingPhoto != index {
             print("didSelect: \(index)")
-            showPhotoAtInex(index, quality: .lowAndHighQuality)
+            showPhotoAtInex(index, preferredLowQuality: false)
             indexOfDraggingPhoto = index
         }
     }
     
-    func showPhotoAtInex(_ index: Int, quality: JWPhotoQuality) {
+    func showPhotoAtInex(_ index: Int, preferredLowQuality: Bool) {
         guard let photos = self.photos else { return }
         
         if 0 <= index && index < photos.count {
@@ -89,7 +89,7 @@ extension ViewController: JWThumbnailsNavigationDelegate {
             let itemSize = photoView.bounds.size
             let scale = UIScreen.main.scale
             let targetSize = CGSize.init(width: itemSize.width * scale, height: itemSize.height * scale)
-            self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, quality: quality, completion: { image, isLowQuality in
+            self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, preferredLowQuality: preferredLowQuality, completion: { image, isLowQuality in
                 DispatchQueue.main.async {
                     print("showPhoto>>>>>: \(index), low quality: \(isLowQuality)")
                     self.photoView.image = image

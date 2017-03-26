@@ -9,12 +9,6 @@
 import UIKit
 import Photos
 
-enum JWPhotoQuality {
-    case onlyLowQuality
-    case onlyHighQuality
-    case lowAndHighQuality
-}
-
 class JWPhotoFetcher: NSObject, PHPhotoLibraryChangeObserver {
     fileprivate let imageManager = PHImageManager()
     var fetchResult: PHFetchResult<PHAsset>?
@@ -34,19 +28,14 @@ class JWPhotoFetcher: NSObject, PHPhotoLibraryChangeObserver {
         return self.fetchResult
     }
     
-    func fetchPhoto(for asset: PHAsset, targetSize: CGSize, contentMode: PHImageContentMode, quality: JWPhotoQuality, completion: @escaping (UIImage?, Bool) -> Swift.Void) {
+    func fetchPhoto(for asset: PHAsset, targetSize: CGSize, contentMode: PHImageContentMode, preferredLowQuality: Bool, completion: @escaping (UIImage?, Bool) -> Swift.Void) {
         self.imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, options: nil, resultHandler: { (result, info) in
             let isDegraded :NSNumber = info?[PHImageResultIsDegradedKey] as! NSNumber
-            if (quality == .onlyLowQuality) {
+            if (preferredLowQuality) {
                 if (isDegraded.boolValue) {
                     completion(result, isDegraded.boolValue)
                 }
-            } else if (quality == .onlyHighQuality) {
-                if (!isDegraded.boolValue) {
-                    completion(result, isDegraded.boolValue)
-                }
-            }
-            else {
+            } else {
                 completion(result, isDegraded.boolValue)
             }
         })
