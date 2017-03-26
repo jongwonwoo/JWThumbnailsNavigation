@@ -86,6 +86,8 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
         collectionView.topAnchor.constraint(equalTo: self.topAnchor, constant: 0).isActive = true
         collectionView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0).isActive = true
         self.thumbnailsCollectionView = collectionView
+        
+        collectionView.showsHorizontalScrollIndicator = false
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
