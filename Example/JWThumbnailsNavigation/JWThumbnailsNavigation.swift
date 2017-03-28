@@ -39,8 +39,7 @@ class JWThumbnailsNavigation: UIView {
             
             if let photos = self.photos, let indexOfSelectedItem = indexOfSelectedItem {
                 if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
-                    self.fireEventOnSelectThumbnailIndex(indexOfSelectedItem)
-                    self.thumbnailsCollectionView.scrollToItem(at: IndexPath.init(item: indexOfSelectedItem, section: 0), at: .centeredHorizontally, animated: false)
+                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false)
                 }
             }
         }
@@ -124,8 +123,12 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        selectThumbnailAtIndexPath(indexPath, animated: true)
+    }
+    
+    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool) {
         fireEventOnSelectThumbnailIndex(indexPath.item)
-        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+        self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
     }
 }
 
@@ -193,9 +196,7 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
             }
         case .stop:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
-                fireEventOnSelectThumbnailIndex(indexPath.item)
-                self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
-                
+                selectThumbnailAtIndexPath(indexPath, animated: true)
             }
         default:
             break
