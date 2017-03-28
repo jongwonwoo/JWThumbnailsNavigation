@@ -26,7 +26,22 @@ class JWThumbnailsNavigation: UIView {
     
     fileprivate var scrollStateMachine: JWScrollStateMachine = JWScrollStateMachine()
     fileprivate var lastIndexOfScrollingItem: Int = -1
-    fileprivate var lastIndexOfSelectedItem: Int = -1
+    fileprivate var indexPathOfSelectedItem: IndexPath? {
+        willSet {
+            guard let indexPath = indexPathOfSelectedItem else { return }
+            
+            if let cell = self.thumbnailsCollectionView.cellForItem(at: indexPath) as? ImageCollectionViewCell {
+                cell.selectedCell = false
+            }
+        }
+        didSet {
+            guard let indexPath = indexPathOfSelectedItem else { return }
+            
+            if let cell = self.thumbnailsCollectionView.cellForItem(at: indexPath) as? ImageCollectionViewCell {
+                cell.selectedCell = true
+            }
+        }
+    }
     
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>?
@@ -63,6 +78,20 @@ class JWThumbnailsNavigation: UIView {
         self.makeCollectionView()
         
         self.scrollStateMachine.delegate = self
+    }
+    
+    
+    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool) {
+        fireEventOnSelectThumbnailIndexPath(indexPath)
+        self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
+    }
+    
+    private func fireEventOnSelectThumbnailIndexPath(_ indexPath: IndexPath) {
+        if indexPathOfSelectedItem != indexPath {
+            //print("navigation didSelect: \(index)")
+            indexPathOfSelectedItem = indexPath
+            delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
+        }
     }
     
 }
@@ -125,11 +154,6 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         selectThumbnailAtIndexPath(indexPath, animated: true)
     }
-    
-    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool) {
-        fireEventOnSelectThumbnailIndex(indexPath.item)
-        self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
-    }
 }
 
 extension JWThumbnailsNavigation {
@@ -181,7 +205,7 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didDragItemAt: indexPath.item)
                     
-                    lastIndexOfSelectedItem = -1
+                    indexPathOfSelectedItem = nil
                 }
             }
         case .decelerating:
@@ -191,7 +215,7 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didScrollItemAt: indexPath.item)
                     
-                    lastIndexOfSelectedItem = -1
+                    indexPathOfSelectedItem = nil
                 }
             }
         case .stop:
@@ -200,14 +224,6 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
             }
         default:
             break
-        }
-    }
-    
-    func fireEventOnSelectThumbnailIndex(_ index: Int) {
-        if lastIndexOfSelectedItem != index {
-            //print("navigation didSelect: \(index)")
-            lastIndexOfSelectedItem = index
-            delegate?.thumbnailsNavigation?(self, didSelectItemAt: index)
         }
     }
 }
@@ -264,6 +280,17 @@ private class ImageCollectionViewCell: UICollectionViewCell {
         }
     }
     
+    var selectedCell: Bool = false {
+        didSet {
+            if selectedCell {
+                self.layer.borderColor = UIColor.red.cgColor
+                self.layer.borderWidth = 2.0
+            } else {
+                self.layer.borderWidth = 0.0
+            }
+        }
+    }
+    
     private func makeImageView() {
         let imageView = UIImageView.init(frame: self.contentView.bounds)
         imageView.clipsToBounds = true
@@ -275,6 +302,11 @@ private class ImageCollectionViewCell: UICollectionViewCell {
         imageView.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 0).isActive = true
         imageView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: 0).isActive = true
         self.imageView = imageView
+    }
+    
+    override func prepareForReuse() {
+        self.imageView?.image = nil
+        self.selectedCell = false
     }
 }
 
