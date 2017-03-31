@@ -58,7 +58,7 @@ class JWThumbnailsNavigation: UIView {
             
             if let photos = self.photos, let indexOfSelectedItem = indexOfSelectedItem {
                 if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
-                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), scrolling: true, animated: false)
+                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false)
                 }
             }
         }
@@ -85,12 +85,11 @@ class JWThumbnailsNavigation: UIView {
     }
     
     
-    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, scrolling: Bool, animated: Bool) {
+    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool) {
         indexPathOfTargetContentOffset = indexPath
         fireEventOnSelectThumbnailIndexPath(indexPath)
-        if scrolling {
-            self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
-        }
+        
+        self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
     }
     
     private func fireEventOnSelectThumbnailIndexPath(_ indexPath: IndexPath) {
@@ -160,7 +159,7 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        selectThumbnailAtIndexPath(indexPath, scrolling: true, animated: false)
+        selectThumbnailAtIndexPath(indexPath, animated: false)
     }
 }
 
@@ -184,7 +183,6 @@ extension JWThumbnailsNavigation {
         let center = self.thumbnailsCollectionView.bounds.size.width / 2
         let x = targetContentOffset.pointee.x + center
         let y = targetContentOffset.pointee.y
-        
         indexPathOfTargetContentOffset = self.thumbnailsCollectionView.indexPathForItem(at: CGPoint(x: x, y: y))
         print("targetContentOffet: \(x),\(y), \(indexPathOfTargetContentOffset)")
     }
@@ -258,7 +256,7 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                 if debug {
                     print("navigation didSelect: \(indexPath.item)")
                 }
-                selectThumbnailAtIndexPath(indexPath, scrolling: false, animated: false)
+                selectThumbnailAtIndexPath(indexPath, animated: true)
             }
         default:
             break
@@ -312,7 +310,7 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     var delegate: JWThumbnailsNavigationFlowLayoutDelegate!
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        print(#function)
+//        print(#function)
         let attributes = super.layoutAttributesForElements(in: rect)
         
         var expanded = false
@@ -336,7 +334,7 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
             }
             
             itemAttributes.frame = frame
-            print("\(itemAttributes.indexPath):::::\(frame)")
+//            print("\(itemAttributes.indexPath):::::\(frame)")
         }
         
         return attributes
@@ -347,14 +345,13 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     }
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
-        let layoutAttributes = self.layoutAttributesForElements(in: collectionView!.bounds)
-        
         let center = collectionView!.bounds.size.width / 2
         let proposedContentOffsetCenterOrigin = proposedContentOffset.x + center
         
+        let layoutAttributes = self.layoutAttributesForElements(in: collectionView!.bounds)
         let closest = layoutAttributes!.sorted { abs($0.center.x - proposedContentOffsetCenterOrigin) < abs($1.center.x - proposedContentOffsetCenterOrigin) }.first ?? UICollectionViewLayoutAttributes()
         
-        let targetContentOffset = CGPoint(x: floor(closest.center.x - center) , y: proposedContentOffset.y)
+        let targetContentOffset = CGPoint(x: floor(closest.center.x - center), y: proposedContentOffset.y)
         
         return targetContentOffset
     }
