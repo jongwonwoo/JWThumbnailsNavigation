@@ -283,8 +283,8 @@ private class ImageCollectionViewCell: UICollectionViewCell {
     var selectedCell: Bool = false {
         didSet {
             if selectedCell {
-                self.layer.borderColor = UIColor.red.cgColor
-                self.layer.borderWidth = 2.0
+                self.layer.borderColor = UIColor.white.cgColor
+                self.layer.borderWidth = 3.0
             } else {
                 self.layer.borderWidth = 0.0
             }
