@@ -19,6 +19,8 @@ import Photos
 
 class JWThumbnailsNavigation: UIView {
 
+    fileprivate let debug = true
+    
     weak var delegate: JWThumbnailsNavigationDelegate?
     
     fileprivate let reuseIdentifier = "ThumbnailCell"
@@ -152,44 +154,58 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        selectThumbnailAtIndexPath(indexPath, animated: true)
+        selectThumbnailAtIndexPath(indexPath, animated: false)
     }
 }
 
 extension JWThumbnailsNavigation {
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.beginDragging)
     }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.willEndDragging)
     }
     
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.willBeginDecelerating)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.didScroll)
     }
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.didEndScrollingAnimation)
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(decelerate ? .didEndDraggingAndDecelerating : .didEndDraggingAndNotDecelerating)
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.didEndDecelerating)
     }
 }
@@ -201,7 +217,9 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
         case .dragging:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
                 if lastIndexOfScrollingItem != indexPath.item {
-                    //print("navigation didDrag: \(indexPath.item)")
+                    if debug {
+                        print("navigation didDrag: \(indexPath.item)")
+                    }
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didDragItemAt: indexPath.item)
                     
@@ -211,7 +229,9 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
         case .decelerating:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
                 if lastIndexOfScrollingItem != indexPath.item {
-                    //print("navigation didScroll: \(indexPath.item)")
+                    if debug {
+                        print("navigation didScroll: \(indexPath.item)")
+                    }
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didScrollItemAt: indexPath.item)
                     
@@ -220,7 +240,10 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
             }
         case .stop:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
-                selectThumbnailAtIndexPath(indexPath, animated: true)
+                if debug {
+                    print("navigation didSelect: \(indexPath.item)")
+                    selectThumbnailAtIndexPath(indexPath, animated: true)
+                }
             }
         default:
             break
