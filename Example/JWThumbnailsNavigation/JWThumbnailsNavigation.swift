@@ -86,6 +86,7 @@ class JWThumbnailsNavigation: UIView {
     
     
     fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, scrolling: Bool, animated: Bool) {
+        indexPathOfTargetContentOffset = indexPath
         fireEventOnSelectThumbnailIndexPath(indexPath)
         if scrolling {
             self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
@@ -256,8 +257,8 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
                 if debug {
                     print("navigation didSelect: \(indexPath.item)")
-                    selectThumbnailAtIndexPath(indexPath, scrolling: false, animated: false)
                 }
+                selectThumbnailAtIndexPath(indexPath, scrolling: false, animated: false)
             }
         default:
             break
