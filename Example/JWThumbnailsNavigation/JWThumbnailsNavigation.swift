@@ -161,6 +161,8 @@ extension JWThumbnailsNavigation {
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         //print(#function)
         scrollStateMachine.scrolling(.beginDragging)
+        
+        indexPathOfSelectedItem = nil
     }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
@@ -204,8 +206,6 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                     //print("navigation didDrag: \(indexPath.item)")
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didDragItemAt: indexPath.item)
-                    
-                    indexPathOfSelectedItem = nil
                 }
             }
         case .decelerating:
@@ -214,8 +214,6 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                     //print("navigation didScroll: \(indexPath.item)")
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didScrollItemAt: indexPath.item)
-                    
-                    indexPathOfSelectedItem = nil
                 }
             }
         case .stop:
