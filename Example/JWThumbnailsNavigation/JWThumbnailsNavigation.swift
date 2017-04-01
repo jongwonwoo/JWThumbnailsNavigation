@@ -60,6 +60,14 @@ class JWThumbnailsNavigation: UIView {
         }
     }
     
+    func scrollToItem(at index: Int, animated: Bool = false) {
+        guard let photos = self.photos else { return }
+        
+        if (0 <= index && index < photos.count) {
+            self.thumbnailsCollectionView.scrollToItem(at: IndexPath.init(item: index, section: 0), at: .centeredHorizontally, animated: animated)
+        }
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -83,7 +91,7 @@ class JWThumbnailsNavigation: UIView {
     
     fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool) {
         fireEventOnSelectThumbnailIndexPath(indexPath)
-        self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
+        self.scrollToItem(at: indexPath.item, animated: animated)
     }
     
     private func fireEventOnSelectThumbnailIndexPath(_ indexPath: IndexPath) {
