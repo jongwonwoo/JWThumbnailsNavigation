@@ -73,7 +73,7 @@ class JWThumbnailsNavigation: UIView {
     }
     
     func setupView() {
-        self.backgroundColor = .red
+        self.backgroundColor = .white
         
         self.makeCollectionView()
         
@@ -137,6 +137,7 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
         self.thumbnailsCollectionView = collectionView
         
         collectionView.showsHorizontalScrollIndicator = false
+        collectionView.backgroundColor = .white
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -249,20 +250,21 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
 
 extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let height = self.bounds.height
+        let height = self.bounds.height - 2
         let width = height * 0.5
         
         return CGSize(width: width, height: height)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        var inset = CGFloat(0.0)
+        let insetX = CGFloat(1)
+        var insetY = CGFloat(0)
         let viewWidth = self.bounds.width
         let viewHeight = self.bounds.height
         let cellWidth = viewHeight * 0.5
-        inset = (viewWidth - cellWidth) / 2
+        insetY = (viewWidth - cellWidth) / 2
         
-        return UIEdgeInsets(top: 0.0, left: inset, bottom: 0.0, right: inset)
+        return UIEdgeInsets(top: insetX, left: insetY, bottom: insetX, right: insetY)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
