@@ -27,8 +27,13 @@
                                     <constraint firstAttribute="height" constant="50" id="Tu4-Hq-mp8"/>
                                 </constraints>
                             </view>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="qOH-3z-Iv0">
+                            <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="qOH-3z-Iv0">
                                 <rect key="frame" x="0.0" y="20" width="375" height="597"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="PbH-Wx-4dc" appends="YES" id="dOl-Ic-fxE"/>
+                                    <outletCollection property="gestureRecognizers" destination="wsd-Yk-1KS" appends="YES" id="iO1-BP-LOy"/>
+                                </connections>
                             </imageView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j93-22-xqn">
                                 <rect key="frame" x="0.0" y="616" width="375" height="1"/>
@@ -58,6 +63,16 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
+                <swipeGestureRecognizer direction="right" id="PbH-Wx-4dc">
+                    <connections>
+                        <action selector="imageViewSwiped:" destination="vXZ-lx-hvc" id="NBD-d5-yGe"/>
+                    </connections>
+                </swipeGestureRecognizer>
+                <swipeGestureRecognizer direction="left" id="wsd-Yk-1KS">
+                    <connections>
+                        <action selector="imageViewSwiped:" destination="vXZ-lx-hvc" id="br4-0P-lkb"/>
+                    </connections>
+                </swipeGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="136.80000000000001" y="138.98050974512745"/>
         </scene>

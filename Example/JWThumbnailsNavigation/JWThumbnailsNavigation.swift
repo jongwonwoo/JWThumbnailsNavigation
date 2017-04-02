@@ -107,6 +107,10 @@ extension JWThumbnailsNavigation {
         }
     }
     
+    func selectItem(atIndex index: Int, animated: Bool = false) {
+        self.selectThumbnailAtIndexPath(IndexPath.init(item: index, section: 0), animated: animated)
+    }
+    
     func scrollToItem(at indexPath: IndexPath, animated: Bool = false) {
         guard let photos = self.photos else { return }
         

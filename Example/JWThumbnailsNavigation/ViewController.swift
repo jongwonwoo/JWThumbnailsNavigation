@@ -16,6 +16,7 @@ class ViewController: UIViewController {
     
     weak var thumbnailsNavigation: JWThumbnailsNavigation!
     fileprivate var indexOfDraggingPhoto: Int = -1
+    fileprivate var indexOfSelectedPhoto: Int = -1
     
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>? {
@@ -44,6 +45,24 @@ class ViewController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    @IBAction func imageViewSwiped(_ sender: UISwipeGestureRecognizer) {
+        guard let photos = self.photos else { return }
+        // TODO: 스크롤 중 인덱스가 들어올 때 처리 필요
+        if sender.direction == UISwipeGestureRecognizerDirection.right {
+            let previousIndex = indexOfSelectedPhoto - 1
+            if 0 <= previousIndex {
+                indexOfSelectedPhoto = previousIndex
+                self.thumbnailsNavigation.selectItem(atIndex: previousIndex, animated: true)
+            }
+        } else if sender.direction == UISwipeGestureRecognizerDirection.left {
+            let nextIndex = indexOfSelectedPhoto + 1
+            if nextIndex < photos.count {
+                indexOfSelectedPhoto = nextIndex
+                self.thumbnailsNavigation.selectItem(atIndex: nextIndex, animated: true)
+            }
+        }
     }
     
     func makeThumbnailsNavigation() {
@@ -78,6 +97,7 @@ extension ViewController: JWThumbnailsNavigationDelegate {
             print("didSelect: \(index)")
             showPhotoAtInex(index, preferredLowQuality: false)
             indexOfDraggingPhoto = index
+            indexOfSelectedPhoto = index
         }
     }
     
