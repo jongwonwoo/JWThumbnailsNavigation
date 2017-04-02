@@ -60,14 +60,6 @@ class JWThumbnailsNavigation: UIView {
         }
     }
     
-    func scrollToItem(at index: Int, animated: Bool = false) {
-        guard let photos = self.photos else { return }
-        
-        if (0 <= index && index < photos.count) {
-            self.thumbnailsCollectionView.scrollToItem(at: IndexPath.init(item: index, section: 0), at: .centeredHorizontally, animated: animated)
-        }
-    }
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -87,11 +79,24 @@ class JWThumbnailsNavigation: UIView {
         
         self.scrollStateMachine.delegate = self
     }
-    
-    
+}
+
+extension JWThumbnailsNavigation {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        self.thumbnailsCollectionView.collectionViewLayout.invalidateLayout()
+        if let indexPath = indexPathOfSelectedItem {
+            self.scrollToItem(at: indexPath)
+        }
+    }
+}
+
+extension JWThumbnailsNavigation {
+
     fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool) {
         fireEventOnSelectThumbnailIndexPath(indexPath)
-        self.scrollToItem(at: indexPath.item, animated: animated)
+        self.scrollToItem(at: indexPath, animated: animated)
     }
     
     private func fireEventOnSelectThumbnailIndexPath(_ indexPath: IndexPath) {
@@ -99,6 +104,14 @@ class JWThumbnailsNavigation: UIView {
             //print("navigation didSelect: \(index)")
             indexPathOfSelectedItem = indexPath
             delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
+        }
+    }
+    
+    func scrollToItem(at indexPath: IndexPath, animated: Bool = false) {
+        guard let photos = self.photos else { return }
+        
+        if (0 <= indexPath.item && indexPath.item < photos.count) {
+            self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
         }
     }
     
