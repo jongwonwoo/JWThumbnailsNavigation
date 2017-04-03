@@ -21,7 +21,8 @@ class ViewController: UIViewController {
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>? {
         didSet {
-            showPhotoAtInex(0)
+            indexOfSelectedPhoto = 0
+            showPhotoAtInex(indexOfSelectedPhoto)
             thumbnailsNavigation.setPhotos(self.photos)
         }
     }
