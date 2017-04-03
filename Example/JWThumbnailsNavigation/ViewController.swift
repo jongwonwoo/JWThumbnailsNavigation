@@ -21,6 +21,7 @@ class ViewController: UIViewController {
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>? {
         didSet {
+            showPhotoAtInex(0)
             thumbnailsNavigation.setPhotos(self.photos)
         }
     }
@@ -54,12 +55,14 @@ class ViewController: UIViewController {
             let previousIndex = indexOfSelectedPhoto - 1
             if 0 <= previousIndex {
                 indexOfSelectedPhoto = previousIndex
+                showPhotoAtInex(previousIndex)
                 self.thumbnailsNavigation.selectItem(atIndex: previousIndex, animated: true)
             }
         } else if sender.direction == UISwipeGestureRecognizerDirection.left {
             let nextIndex = indexOfSelectedPhoto + 1
             if nextIndex < photos.count {
                 indexOfSelectedPhoto = nextIndex
+                showPhotoAtInex(nextIndex)
                 self.thumbnailsNavigation.selectItem(atIndex: nextIndex, animated: true)
             }
         }
@@ -83,25 +86,25 @@ class ViewController: UIViewController {
 extension ViewController: JWThumbnailsNavigationDelegate {
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didDragItemAt index: Int) {
         print("didDrag: \(index)")
+        
         showPhotoAtInex(index, preferredLowQuality: false)
         indexOfDraggingPhoto = index
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int) {
         print("didScroll: \(index)")
+        
         showPhotoAtInex(index, preferredLowQuality: true)
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int) {
-        if indexOfDraggingPhoto != index {
-            print("didSelect: \(index)")
-            showPhotoAtInex(index, preferredLowQuality: false)
-            indexOfDraggingPhoto = index
-            indexOfSelectedPhoto = index
-        }
+        print("didSelect: \(index)")
+        
+        showPhotoAtInex(index, preferredLowQuality: false)
+        indexOfSelectedPhoto = index
     }
     
-    func showPhotoAtInex(_ index: Int, preferredLowQuality: Bool) {
+    func showPhotoAtInex(_ index: Int, preferredLowQuality: Bool = false) {
         guard let photos = self.photos else { return }
         
         if 0 <= index && index < photos.count {

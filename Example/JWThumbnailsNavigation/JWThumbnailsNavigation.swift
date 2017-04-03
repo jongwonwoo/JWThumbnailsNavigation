@@ -54,7 +54,7 @@ class JWThumbnailsNavigation: UIView {
             
             if let photos = self.photos, let indexOfSelectedItem = indexOfSelectedItem {
                 if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
-                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false)
+                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false, fireEvent: false)
                 }
             }
         }
@@ -94,24 +94,24 @@ extension JWThumbnailsNavigation {
 
 extension JWThumbnailsNavigation {
 
-    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool) {
-        fireEventOnSelectThumbnailIndexPath(indexPath)
-        self.scrollToItem(at: indexPath, animated: animated)
-    }
-    
-    private func fireEventOnSelectThumbnailIndexPath(_ indexPath: IndexPath) {
+    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool, fireEvent: Bool) {
         if indexPathOfSelectedItem != indexPath {
             //print("navigation didSelect: \(index)")
             indexPathOfSelectedItem = indexPath
+        }
+        
+        self.scrollToItem(at: indexPath, animated: animated)
+        
+        if fireEvent {
             delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
         }
     }
     
     func selectItem(atIndex index: Int, animated: Bool = false) {
-        self.selectThumbnailAtIndexPath(IndexPath.init(item: index, section: 0), animated: animated)
+        self.selectThumbnailAtIndexPath(IndexPath.init(item: index, section: 0), animated: animated, fireEvent: false)
     }
     
-    func scrollToItem(at indexPath: IndexPath, animated: Bool = false) {
+    fileprivate func scrollToItem(at indexPath: IndexPath, animated: Bool = false) {
         guard let photos = self.photos else { return }
         
         if (0 <= indexPath.item && indexPath.item < photos.count) {
@@ -178,7 +178,7 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        selectThumbnailAtIndexPath(indexPath, animated: true)
+        selectThumbnailAtIndexPath(indexPath, animated: true, fireEvent: true)
     }
 }
 
@@ -244,7 +244,7 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
             }
         case .stop:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
-                selectThumbnailAtIndexPath(indexPath, animated: true)
+                selectThumbnailAtIndexPath(indexPath, animated: true, fireEvent: true)
             }
         default:
             break
