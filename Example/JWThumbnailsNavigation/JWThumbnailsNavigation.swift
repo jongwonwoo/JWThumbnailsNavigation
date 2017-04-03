@@ -19,6 +19,8 @@ import Photos
 
 class JWThumbnailsNavigation: UIView {
 
+    fileprivate let debug = true
+    
     weak var delegate: JWThumbnailsNavigationDelegate?
     
     fileprivate let reuseIdentifier = "ThumbnailCell"
@@ -43,10 +45,10 @@ class JWThumbnailsNavigation: UIView {
         }
     }
     
+    fileprivate var indexPathOfTargetContentOffset: IndexPath?
+    
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>?
-    
-    
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -101,6 +103,8 @@ extension JWThumbnailsNavigation {
     }
 
     fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool, fireEvent: Bool) {
+        indexPathOfTargetContentOffset = indexPath
+        
         if indexPathOfSelectedItem != indexPath {
             //print("navigation didSelect: \(index)")
             indexPathOfSelectedItem = indexPath
@@ -127,7 +131,8 @@ extension JWThumbnailsNavigation {
 extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDelegate {
     
     fileprivate func makeCollectionView() {
-        let layout = UICollectionViewFlowLayout()
+        let layout = JWThumbnailsNavigationFlowLayout()
+        layout.delegate = self
         layout.scrollDirection = .horizontal
         
         let collectionView = CustomCollectionView.init(frame: CGRect.zero, collectionViewLayout: layout)
@@ -188,39 +193,61 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
 extension JWThumbnailsNavigation {
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.beginDragging)
         
+
         indexPathOfSelectedItem = nil
+        indexPathOfTargetContentOffset = nil
     }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.willEndDragging)
+        
+        let center = self.thumbnailsCollectionView.bounds.size.width / 2
+        let x = targetContentOffset.pointee.x + center
+        let y = targetContentOffset.pointee.y
+        indexPathOfTargetContentOffset = self.thumbnailsCollectionView.indexPathForItem(at: CGPoint(x: x, y: y))
+        print("targetContentOffet: \(x),\(y), \(indexPathOfTargetContentOffset)")
     }
     
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.willBeginDecelerating)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.didScroll)
     }
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.didEndScrollingAnimation)
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(decelerate ? .didEndDraggingAndDecelerating : .didEndDraggingAndNotDecelerating)
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        //print(#function)
+        if debug {
+            print(#function)
+        }
         scrollStateMachine.scrolling(.didEndDecelerating)
     }
 }
@@ -232,7 +259,9 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
         case .dragging:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
                 if lastIndexOfScrollingItem != indexPath.item {
-                    //print("navigation didDrag: \(indexPath.item)")
+                    if debug {
+                        print("navigation didDrag: \(indexPath.item)")
+                    }
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didDragItemAt: indexPath.item)
                 }
@@ -240,13 +269,19 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
         case .decelerating:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
                 if lastIndexOfScrollingItem != indexPath.item {
-                    //print("navigation didScroll: \(indexPath.item)")
+                    if debug {
+                        print("navigation didScroll: \(indexPath.item)")
+                    }
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didScrollItemAt: indexPath.item)
                 }
             }
         case .stop:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
+                if debug {
+                    print("navigation didSelect: \(indexPath.item)")
+                }
+                
                 selectThumbnailAtIndexPath(indexPath, animated: true, fireEvent: true)
             }
         default:
@@ -257,8 +292,13 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
 
 extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let height = self.bounds.height - 2
-        let width = height * 0.5
+        let height = self.bounds.height
+        var width = height * 0.5
+        if let indexPathOfTargetContentOffset = indexPathOfTargetContentOffset {
+            if indexPath == indexPathOfTargetContentOffset {
+                width += height
+            }
+        }
         
         return CGSize(width: width, height: height)
     }
@@ -277,6 +317,72 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 1
     }
+}
+
+extension JWThumbnailsNavigation: JWThumbnailsNavigationFlowLayoutDelegate {
+
+    func collectionViewTargetIndexPath(_ collectionView: UICollectionView) -> IndexPath? {
+        return self.indexPathOfTargetContentOffset
+    }
+}
+
+protocol JWThumbnailsNavigationFlowLayoutDelegate {
+    
+    func collectionViewTargetIndexPath(_ collectionView: UICollectionView) -> IndexPath?
+    
+}
+
+
+class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
+    var delegate: JWThumbnailsNavigationFlowLayoutDelegate!
+    
+    override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+//        print(#function)
+        let attributes = super.layoutAttributesForElements(in: rect)
+        
+        var expanded = false
+        var offsetX: CGFloat = 0
+        for itemAttributes in attributes! {
+            var frame = itemAttributes.frame
+            if expanded {
+                frame.origin.x = frame.minX + offsetX
+            }
+            
+            if let indexPath = delegate.collectionViewTargetIndexPath(collectionView!) {
+                if indexPath == itemAttributes.indexPath {
+                    frame.size.width = collectionView!.frame.height * 0.5 + collectionView!.frame.height
+                    expanded = true
+                    offsetX = collectionView!.frame.height
+                } else {
+                    frame.size.width = collectionView!.frame.height * 0.5
+                }
+            } else {
+                frame.size.width = collectionView!.frame.height * 0.5
+            }
+            
+            itemAttributes.frame = frame
+//            print("\(itemAttributes.indexPath):::::\(frame)")
+        }
+        
+        return attributes
+    }
+    
+    override open func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
+        return true
+    }
+    
+    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+        let center = collectionView!.bounds.size.width / 2
+        let proposedContentOffsetCenterOrigin = proposedContentOffset.x + center
+        
+        let layoutAttributes = self.layoutAttributesForElements(in: collectionView!.bounds)
+        let closest = layoutAttributes!.sorted { abs($0.center.x - proposedContentOffsetCenterOrigin) < abs($1.center.x - proposedContentOffsetCenterOrigin) }.first ?? UICollectionViewLayoutAttributes()
+        
+        let targetContentOffset = CGPoint(x: floor(closest.center.x - center), y: proposedContentOffset.y)
+        
+        return targetContentOffset
+    }
+
 }
 
 private class CustomCollectionView: UICollectionView {
@@ -344,4 +450,5 @@ private class ImageCollectionViewCell: UICollectionViewCell {
         self.imageView?.image = nil
         self.selectedCell = false
     }
+    
 }

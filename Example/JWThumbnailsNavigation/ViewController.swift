@@ -100,7 +100,6 @@ extension ViewController: JWThumbnailsNavigationDelegate {
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int) {
         print("didSelect: \(index)")
-        
         showPhotoAtInex(index, preferredLowQuality: false)
         indexOfSelectedPhoto = index
     }
@@ -115,7 +114,7 @@ extension ViewController: JWThumbnailsNavigationDelegate {
             let targetSize = CGSize.init(width: itemSize.width * scale, height: itemSize.height * scale)
             self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, preferredLowQuality: preferredLowQuality, completion: { image, isLowQuality in
                 DispatchQueue.main.async {
-                    print("showPhoto>>>>>: \(index), low quality: \(isLowQuality)")
+//                    print("showPhoto>>>>>: \(index), low quality: \(isLowQuality)")
                     self.photoView.image = image
                 }
             })
