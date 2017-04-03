@@ -98,13 +98,14 @@ extension JWThumbnailsNavigation {
         if indexPathOfSelectedItem != indexPath {
             //print("navigation didSelect: \(index)")
             indexPathOfSelectedItem = indexPath
+
+            if fireEvent {
+                delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
+            }
         }
         
         self.scrollToItem(at: indexPath, animated: animated)
         
-        if fireEvent {
-            delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
-        }
     }
     
     func selectItem(atIndex index: Int, animated: Bool = false) {
