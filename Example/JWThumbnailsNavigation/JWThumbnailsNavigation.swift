@@ -46,19 +46,7 @@ class JWThumbnailsNavigation: UIView {
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>?
     
-    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int? = 0) {
-        self.photos = photos
-        
-        self.thumbnailsCollectionView.reloadDataWithCompletion {
-            self.thumbnailsCollectionView.reloadDataCompletionBlock = nil
-            
-            if let photos = self.photos, let indexOfSelectedItem = indexOfSelectedItem {
-                if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
-                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false)
-                }
-            }
-        }
-    }
+    
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -72,25 +60,65 @@ class JWThumbnailsNavigation: UIView {
         self.setupView()
     }
     
-    func setupView() {
-        self.backgroundColor = .red
+    private func setupView() {
+        self.backgroundColor = .white
         
         self.makeCollectionView()
         
         self.scrollStateMachine.delegate = self
     }
-    
-    
-    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool) {
-        fireEventOnSelectThumbnailIndexPath(indexPath)
-        self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
+}
+
+extension JWThumbnailsNavigation {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        self.thumbnailsCollectionView.collectionViewLayout.invalidateLayout()
+        if let indexPath = indexPathOfSelectedItem {
+            self.scrollToItem(at: indexPath)
+        }
+    }
+}
+
+extension JWThumbnailsNavigation {
+
+    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int? = 0) {
+        self.photos = photos
+        
+        self.thumbnailsCollectionView.reloadDataWithCompletion {
+            self.thumbnailsCollectionView.reloadDataCompletionBlock = nil
+            
+            if let photos = self.photos, let indexOfSelectedItem = indexOfSelectedItem {
+                if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
+                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false, fireEvent: false)
+                }
+            }
+        }
     }
     
-    private func fireEventOnSelectThumbnailIndexPath(_ indexPath: IndexPath) {
+    func selectItem(atIndex index: Int, animated: Bool = false) {
+        self.selectThumbnailAtIndexPath(IndexPath.init(item: index, section: 0), animated: animated, fireEvent: false)
+    }
+
+    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool, fireEvent: Bool) {
         if indexPathOfSelectedItem != indexPath {
             //print("navigation didSelect: \(index)")
             indexPathOfSelectedItem = indexPath
-            delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
+
+            if fireEvent {
+                delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
+            }
+        }
+        
+        self.scrollToItem(at: indexPath, animated: animated)
+        
+    }
+    
+    fileprivate func scrollToItem(at indexPath: IndexPath, animated: Bool = false) {
+        guard let photos = self.photos else { return }
+        
+        if (0 <= indexPath.item && indexPath.item < photos.count) {
+            self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
         }
     }
     
@@ -98,7 +126,7 @@ class JWThumbnailsNavigation: UIView {
 
 extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDelegate {
     
-    func makeCollectionView() {
+    fileprivate func makeCollectionView() {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         
@@ -116,6 +144,7 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
         self.thumbnailsCollectionView = collectionView
         
         collectionView.showsHorizontalScrollIndicator = false
+        collectionView.backgroundColor = .white
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -152,7 +181,7 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        selectThumbnailAtIndexPath(indexPath, animated: true)
+        selectThumbnailAtIndexPath(indexPath, animated: true, fireEvent: true)
     }
 }
 
@@ -161,6 +190,8 @@ extension JWThumbnailsNavigation {
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         //print(#function)
         scrollStateMachine.scrolling(.beginDragging)
+        
+        indexPathOfSelectedItem = nil
     }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
@@ -204,8 +235,6 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                     //print("navigation didDrag: \(indexPath.item)")
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didDragItemAt: indexPath.item)
-                    
-                    indexPathOfSelectedItem = nil
                 }
             }
         case .decelerating:
@@ -214,13 +243,11 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                     //print("navigation didScroll: \(indexPath.item)")
                     lastIndexOfScrollingItem = indexPath.item
                     delegate?.thumbnailsNavigation?(self, didScrollItemAt: indexPath.item)
-                    
-                    indexPathOfSelectedItem = nil
                 }
             }
         case .stop:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
-                selectThumbnailAtIndexPath(indexPath, animated: true)
+                selectThumbnailAtIndexPath(indexPath, animated: true, fireEvent: true)
             }
         default:
             break
@@ -230,20 +257,21 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
 
 extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let height = self.bounds.height
+        let height = self.bounds.height - 2
         let width = height * 0.5
         
         return CGSize(width: width, height: height)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        var inset = CGFloat(0.0)
+        let insetX = CGFloat(1)
+        var insetY = CGFloat(0)
         let viewWidth = self.bounds.width
         let viewHeight = self.bounds.height
         let cellWidth = viewHeight * 0.5
-        inset = (viewWidth - cellWidth) / 2
+        insetY = (viewWidth - cellWidth) / 2
         
-        return UIEdgeInsets(top: 0.0, left: inset, bottom: 0.0, right: inset)
+        return UIEdgeInsets(top: insetX, left: insetY, bottom: insetX, right: insetY)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -261,9 +289,17 @@ private class CustomCollectionView: UICollectionView {
         self.reloadDataCompletionBlock?()
     }
     
-    func reloadDataWithCompletion(_ completion:@escaping () -> Void) {
+    fileprivate func reloadDataWithCompletion(_ completion:@escaping () -> Void) {
         reloadDataCompletionBlock = completion
         super.reloadData()
+    }
+    
+    fileprivate func indexPathForVisibleCenter() -> IndexPath? {
+        var visibleRect = CGRect()
+        visibleRect.origin = self.contentOffset
+        visibleRect.size = self.bounds.size
+        let visiblePoint = CGPoint(x: visibleRect.midX, y: visibleRect.midY)
+        return self.indexPathForItem(at: visiblePoint)
     }
 }
 
@@ -307,15 +343,5 @@ private class ImageCollectionViewCell: UICollectionViewCell {
     override func prepareForReuse() {
         self.imageView?.image = nil
         self.selectedCell = false
-    }
-}
-
-private extension UICollectionView {
-    func indexPathForVisibleCenter() -> IndexPath? {
-        var visibleRect = CGRect()
-        visibleRect.origin = self.contentOffset
-        visibleRect.size = self.bounds.size
-        let visiblePoint = CGPoint(x: visibleRect.midX, y: visibleRect.midY)
-        return self.indexPathForItem(at: visiblePoint)
     }
 }

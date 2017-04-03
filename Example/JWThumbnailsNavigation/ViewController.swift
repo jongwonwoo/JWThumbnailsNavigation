@@ -16,10 +16,13 @@ class ViewController: UIViewController {
     
     weak var thumbnailsNavigation: JWThumbnailsNavigation!
     fileprivate var indexOfDraggingPhoto: Int = -1
+    fileprivate var indexOfSelectedPhoto: Int = -1
     
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>? {
         didSet {
+            indexOfSelectedPhoto = 0
+            showPhotoAtInex(indexOfSelectedPhoto)
             thumbnailsNavigation.setPhotos(self.photos)
         }
     }
@@ -46,6 +49,26 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    @IBAction func imageViewSwiped(_ sender: UISwipeGestureRecognizer) {
+        guard let photos = self.photos else { return }
+        // TODO: 스크롤 중 인덱스가 들어올 때 처리 필요
+        if sender.direction == UISwipeGestureRecognizerDirection.right {
+            let previousIndex = indexOfSelectedPhoto - 1
+            if 0 <= previousIndex {
+                indexOfSelectedPhoto = previousIndex
+                showPhotoAtInex(previousIndex)
+                self.thumbnailsNavigation.selectItem(atIndex: previousIndex, animated: true)
+            }
+        } else if sender.direction == UISwipeGestureRecognizerDirection.left {
+            let nextIndex = indexOfSelectedPhoto + 1
+            if nextIndex < photos.count {
+                indexOfSelectedPhoto = nextIndex
+                showPhotoAtInex(nextIndex)
+                self.thumbnailsNavigation.selectItem(atIndex: nextIndex, animated: true)
+            }
+        }
+    }
+    
     func makeThumbnailsNavigation() {
         let thumbnailsNavigation = JWThumbnailsNavigation.init(frame: CGRect.zero)
         toolbarView.addSubview(thumbnailsNavigation)
@@ -64,24 +87,25 @@ class ViewController: UIViewController {
 extension ViewController: JWThumbnailsNavigationDelegate {
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didDragItemAt index: Int) {
         print("didDrag: \(index)")
+        
         showPhotoAtInex(index, preferredLowQuality: false)
         indexOfDraggingPhoto = index
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int) {
         print("didScroll: \(index)")
+        
         showPhotoAtInex(index, preferredLowQuality: true)
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int) {
-        if indexOfDraggingPhoto != index {
-            print("didSelect: \(index)")
-            showPhotoAtInex(index, preferredLowQuality: false)
-            indexOfDraggingPhoto = index
-        }
+        print("didSelect: \(index)")
+        
+        showPhotoAtInex(index, preferredLowQuality: false)
+        indexOfSelectedPhoto = index
     }
     
-    func showPhotoAtInex(_ index: Int, preferredLowQuality: Bool) {
+    func showPhotoAtInex(_ index: Int, preferredLowQuality: Bool = false) {
         guard let photos = self.photos else { return }
         
         if 0 <= index && index < photos.count {
