@@ -46,19 +46,7 @@ class JWThumbnailsNavigation: UIView {
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>?
     
-    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int? = 0) {
-        self.photos = photos
-        
-        self.thumbnailsCollectionView.reloadDataWithCompletion {
-            self.thumbnailsCollectionView.reloadDataCompletionBlock = nil
-            
-            if let photos = self.photos, let indexOfSelectedItem = indexOfSelectedItem {
-                if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
-                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false, fireEvent: false)
-                }
-            }
-        }
-    }
+    
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -72,7 +60,7 @@ class JWThumbnailsNavigation: UIView {
         self.setupView()
     }
     
-    func setupView() {
+    private func setupView() {
         self.backgroundColor = .white
         
         self.makeCollectionView()
@@ -94,6 +82,24 @@ extension JWThumbnailsNavigation {
 
 extension JWThumbnailsNavigation {
 
+    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int? = 0) {
+        self.photos = photos
+        
+        self.thumbnailsCollectionView.reloadDataWithCompletion {
+            self.thumbnailsCollectionView.reloadDataCompletionBlock = nil
+            
+            if let photos = self.photos, let indexOfSelectedItem = indexOfSelectedItem {
+                if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
+                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false, fireEvent: false)
+                }
+            }
+        }
+    }
+    
+    func selectItem(atIndex index: Int, animated: Bool = false) {
+        self.selectThumbnailAtIndexPath(IndexPath.init(item: index, section: 0), animated: animated, fireEvent: false)
+    }
+
     fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool, fireEvent: Bool) {
         if indexPathOfSelectedItem != indexPath {
             //print("navigation didSelect: \(index)")
@@ -108,10 +114,6 @@ extension JWThumbnailsNavigation {
         
     }
     
-    func selectItem(atIndex index: Int, animated: Bool = false) {
-        self.selectThumbnailAtIndexPath(IndexPath.init(item: index, section: 0), animated: animated, fireEvent: false)
-    }
-    
     fileprivate func scrollToItem(at indexPath: IndexPath, animated: Bool = false) {
         guard let photos = self.photos else { return }
         
@@ -124,7 +126,7 @@ extension JWThumbnailsNavigation {
 
 extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDelegate {
     
-    func makeCollectionView() {
+    fileprivate func makeCollectionView() {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         
@@ -287,9 +289,17 @@ private class CustomCollectionView: UICollectionView {
         self.reloadDataCompletionBlock?()
     }
     
-    func reloadDataWithCompletion(_ completion:@escaping () -> Void) {
+    fileprivate func reloadDataWithCompletion(_ completion:@escaping () -> Void) {
         reloadDataCompletionBlock = completion
         super.reloadData()
+    }
+    
+    fileprivate func indexPathForVisibleCenter() -> IndexPath? {
+        var visibleRect = CGRect()
+        visibleRect.origin = self.contentOffset
+        visibleRect.size = self.bounds.size
+        let visiblePoint = CGPoint(x: visibleRect.midX, y: visibleRect.midY)
+        return self.indexPathForItem(at: visiblePoint)
     }
 }
 
@@ -333,15 +343,5 @@ private class ImageCollectionViewCell: UICollectionViewCell {
     override func prepareForReuse() {
         self.imageView?.image = nil
         self.selectedCell = false
-    }
-}
-
-private extension UICollectionView {
-    func indexPathForVisibleCenter() -> IndexPath? {
-        var visibleRect = CGRect()
-        visibleRect.origin = self.contentOffset
-        visibleRect.size = self.bounds.size
-        let visiblePoint = CGPoint(x: visibleRect.midX, y: visibleRect.midY)
-        return self.indexPathForItem(at: visiblePoint)
     }
 }
