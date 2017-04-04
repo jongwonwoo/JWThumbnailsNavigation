@@ -19,7 +19,7 @@ import Photos
 
 class JWThumbnailsNavigation: UIView {
 
-    fileprivate let debug = true
+    fileprivate let debug = false
     
     weak var delegate: JWThumbnailsNavigationDelegate?
     
@@ -290,25 +290,48 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
     }
 }
 
-extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout {
+extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnailsNavigationFlowLayoutDelegate {
+    private func cellHeight() -> CGFloat {
+        return self.bounds.height - 2
+    }
+    
+    private func cellWidth(expanded: Bool) -> CGFloat {
+        return expanded ? cellHeight() * 1.5 : cellHeight() * 0.5
+    }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let height = self.bounds.height
-        var width = height * 0.5
+        let height = self.cellHeight()
+        var width = self.cellWidth(expanded: false)
         if let indexPathOfTargetContentOffset = indexPathOfTargetContentOffset {
             if indexPath == indexPathOfTargetContentOffset {
-                width += height
+                width = self.cellWidth(expanded: true)
             }
         }
         
         return CGSize(width: width, height: height)
     }
+
+    func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, offsetX: CGFloat) {
+        var offsetX = CGFloat(0)
+        var width = self.cellWidth(expanded: false)
+        
+        if let targetIndexPath = self.indexPathOfTargetContentOffset {
+            if targetIndexPath == indexPath {
+                let normalCellWidth = width
+                width = self.cellWidth(expanded: true)
+                offsetX = width - normalCellWidth
+            }
+        }
+        
+        return (width, offsetX)
+    }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         let insetX = CGFloat(1)
+        
         var insetY = CGFloat(0)
         let viewWidth = self.bounds.width
-        let viewHeight = self.bounds.height
-        let cellWidth = viewHeight * 0.5
+        let cellWidth = self.cellWidth(expanded: false)
         insetY = (viewWidth - cellWidth) / 2
         
         return UIEdgeInsets(top: insetX, left: insetY, bottom: insetX, right: insetY)
@@ -317,9 +340,6 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 1
     }
-}
-
-extension JWThumbnailsNavigation: JWThumbnailsNavigationFlowLayoutDelegate {
 
     func collectionViewTargetIndexPath(_ collectionView: UICollectionView) -> IndexPath? {
         return self.indexPathOfTargetContentOffset
@@ -329,6 +349,7 @@ extension JWThumbnailsNavigation: JWThumbnailsNavigationFlowLayoutDelegate {
 protocol JWThumbnailsNavigationFlowLayoutDelegate {
     
     func collectionViewTargetIndexPath(_ collectionView: UICollectionView) -> IndexPath?
+    func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, offsetX: CGFloat)
     
 }
 
@@ -340,24 +361,16 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
 //        print(#function)
         let attributes = super.layoutAttributesForElements(in: rect)
         
-        var expanded = false
         var offsetX: CGFloat = 0
         for itemAttributes in attributes! {
             var frame = itemAttributes.frame
-            if expanded {
-                frame.origin.x = frame.minX + offsetX
-            }
             
-            if let indexPath = delegate.collectionViewTargetIndexPath(collectionView!) {
-                if indexPath == itemAttributes.indexPath {
-                    frame.size.width = collectionView!.frame.height * 0.5 + collectionView!.frame.height
-                    expanded = true
-                    offsetX = collectionView!.frame.height
-                } else {
-                    frame.size.width = collectionView!.frame.height * 0.5
-                }
-            } else {
-                frame.size.width = collectionView!.frame.height * 0.5
+            frame.origin.x = frame.minX + offsetX
+        
+            let (width, offset) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributes.indexPath)
+            frame.size.width = width
+            if (0 < offset) {
+                offsetX = offset
             }
             
             itemAttributes.frame = frame
