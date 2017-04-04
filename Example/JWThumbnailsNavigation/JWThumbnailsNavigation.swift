@@ -302,8 +302,8 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let height = self.cellHeight()
         var width = self.cellWidth(expanded: false)
-        if let indexPathOfTargetContentOffset = indexPathOfTargetContentOffset {
-            if indexPath == indexPathOfTargetContentOffset {
+        if let targetIndexPath = indexPathOfTargetContentOffset {
+            if targetIndexPath == indexPath {
                 width = self.cellWidth(expanded: true)
             }
         }
@@ -358,26 +358,31 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     var delegate: JWThumbnailsNavigationFlowLayoutDelegate!
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-//        print(#function)
         let attributes = super.layoutAttributesForElements(in: rect)
+        var attributesCopy = [UICollectionViewLayoutAttributes]()
         
         var offsetX: CGFloat = 0
         for itemAttributes in attributes! {
-            var frame = itemAttributes.frame
+            let itemAttributesCopy = itemAttributes.copy() as! UICollectionViewLayoutAttributes
+            
+            var frame = itemAttributesCopy.frame
             
             frame.origin.x = frame.minX + offsetX
-        
-            let (width, offset) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributes.indexPath)
+            
+            let (width, offset) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributesCopy.indexPath)
             frame.size.width = width
             if (0 < offset) {
                 offsetX = offset
             }
             
-            itemAttributes.frame = frame
-//            print("\(itemAttributes.indexPath):::::\(frame)")
+            itemAttributesCopy.frame = frame
+            //            print("\(itemAttributes.indexPath):::::\(frame)")
+            
+            
+            attributesCopy.append(itemAttributesCopy)
         }
         
-        return attributes
+        return attributesCopy
     }
     
     override open func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
