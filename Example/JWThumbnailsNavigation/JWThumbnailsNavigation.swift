@@ -209,9 +209,10 @@ extension JWThumbnailsNavigation {
         }
         scrollStateMachine.scrolling(.willEndDragging)
         
-        let center = self.thumbnailsCollectionView.bounds.size.width / 2
-        let x = targetContentOffset.pointee.x + center
-        let y = targetContentOffset.pointee.y
+        let centerX = self.thumbnailsCollectionView.bounds.size.width / 2
+        let centerY = self.thumbnailsCollectionView.bounds.size.height / 2
+        let x = targetContentOffset.pointee.x + centerX
+        let y = targetContentOffset.pointee.y + centerY
         indexPathOfTargetContentOffset = self.thumbnailsCollectionView.indexPathForItem(at: CGPoint(x: x, y: y))
         print("targetContentOffet: \(x),\(y), \(indexPathOfTargetContentOffset)")
     }
