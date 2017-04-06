@@ -45,7 +45,7 @@ class JWThumbnailsNavigation: UIView {
         }
     }
     
-    fileprivate var indexPathOfTargetContentOffset: IndexPath?
+    fileprivate var indexPathOfPrefferedItem: IndexPath?
     
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>?
@@ -84,15 +84,17 @@ extension JWThumbnailsNavigation {
 
 extension JWThumbnailsNavigation {
 
-    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int? = 0) {
+    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int = 0) {
         self.photos = photos
+        let indexPath = IndexPath.init(item: indexOfSelectedItem, section: 0)
+        self.indexPathOfPrefferedItem = indexPath
         
         self.thumbnailsCollectionView.reloadDataWithCompletion {
             self.thumbnailsCollectionView.reloadDataCompletionBlock = nil
             
-            if let photos = self.photos, let indexOfSelectedItem = indexOfSelectedItem {
+            if let photos = self.photos {
                 if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
-                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false, fireEvent: false)
+                    self.selectThumbnailAtIndexPath(indexPath, animated: false, fireEvent: false)
                 }
             }
         }
@@ -103,7 +105,7 @@ extension JWThumbnailsNavigation {
     }
 
     fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool, fireEvent: Bool) {
-        indexPathOfTargetContentOffset = indexPath
+        indexPathOfPrefferedItem = indexPath
         
         if indexPathOfSelectedItem != indexPath {
             //print("navigation didSelect: \(index)")
@@ -200,7 +202,7 @@ extension JWThumbnailsNavigation {
         
 
         indexPathOfSelectedItem = nil
-        indexPathOfTargetContentOffset = nil
+        indexPathOfPrefferedItem = nil
     }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
@@ -213,8 +215,8 @@ extension JWThumbnailsNavigation {
         let centerY = self.thumbnailsCollectionView.bounds.size.height / 2
         let x = targetContentOffset.pointee.x + centerX
         let y = targetContentOffset.pointee.y + centerY
-        indexPathOfTargetContentOffset = self.thumbnailsCollectionView.indexPathForItem(at: CGPoint(x: x, y: y))
-        print("targetContentOffet: \(x),\(y), \(indexPathOfTargetContentOffset)")
+        indexPathOfPrefferedItem = self.thumbnailsCollectionView.indexPathForItem(at: CGPoint(x: x, y: y))
+        print("targetContentOffet: \(x),\(y), \(indexPathOfPrefferedItem)")
     }
     
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
@@ -303,7 +305,7 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let height = self.cellHeight()
         var width = self.cellWidth(expanded: false)
-        if let targetIndexPath = indexPathOfTargetContentOffset {
+        if let targetIndexPath = indexPathOfPrefferedItem {
             if targetIndexPath == indexPath {
                 width = self.cellWidth(expanded: true)
             }
@@ -316,7 +318,7 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
         var offsetX = CGFloat(0)
         var width = self.cellWidth(expanded: false)
         
-        if let targetIndexPath = self.indexPathOfTargetContentOffset {
+        if let targetIndexPath = self.indexPathOfPrefferedItem {
             if targetIndexPath == indexPath {
                 let normalCellWidth = width
                 width = self.cellWidth(expanded: true)
@@ -347,7 +349,7 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
     }
 
     func collectionViewTargetIndexPath(_ collectionView: UICollectionView) -> IndexPath? {
-        return self.indexPathOfTargetContentOffset
+        return self.indexPathOfPrefferedItem
     }
 }
 
