@@ -211,11 +211,13 @@ extension JWThumbnailsNavigation {
         }
         scrollStateMachine.scrolling(.willEndDragging)
         
+        print("original targetContentOffet: \(targetContentOffset.pointee.x),\(targetContentOffset.pointee.y)")
         let centerX = self.thumbnailsCollectionView.bounds.size.width / 2
         let centerY = self.thumbnailsCollectionView.bounds.size.height / 2
         let x = targetContentOffset.pointee.x + centerX
         let y = targetContentOffset.pointee.y + centerY
         indexPathOfPrefferedItem = self.thumbnailsCollectionView.indexPathForItem(at: CGPoint(x: x, y: y))
+        //FIXME: 셀 사이 여백에 걸려서 nil이 나오는 경우가 생김.
         print("targetContentOffet: \(x),\(y), \(indexPathOfPrefferedItem)")
     }
     
