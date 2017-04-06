@@ -368,22 +368,26 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
         let attributes = super.layoutAttributesForElements(in: rect)
         var attributesCopy = [UICollectionViewLayoutAttributes]()
         
+        let spacing: CGFloat = 1
         var offsetX: CGFloat = 0
         for itemAttributes in attributes! {
             let itemAttributesCopy = itemAttributes.copy() as! UICollectionViewLayoutAttributes
             
             var frame = itemAttributesCopy.frame
             
-            frame.origin.x = frame.minX + offsetX
             
             let (width, offset) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributesCopy.indexPath)
             frame.size.width = width
+            if (0 < offsetX) {
+                frame.origin.x = offsetX
+                offsetX += width + spacing
+            }
+            
             if (0 < offset) {
-                offsetX = offset
+                offsetX = frame.maxX + spacing
             }
             
             itemAttributesCopy.frame = frame
-            //            print("\(itemAttributes.indexPath):::::\(frame)")
             
             
             attributesCopy.append(itemAttributesCopy)
