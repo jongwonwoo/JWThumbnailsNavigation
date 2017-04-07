@@ -362,17 +362,18 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        let insetX = CGFloat(1)
         if debug {
             print(#function)
         }
         
-        var insetY = CGFloat(0)
+        let insetY = CGFloat(1)
+        
+        var insetX = CGFloat(0)
         let viewWidth = self.bounds.width
         let cellWidth = self.cellWidth(expanded: false)
-        insetY = (viewWidth - cellWidth) / 2
+        insetX = (viewWidth - cellWidth) / 2
         
-        return UIEdgeInsets(top: insetX, left: insetY, bottom: insetX, right: insetY)
+        return UIEdgeInsets(top: insetY, left: insetX, bottom: insetY, right: insetX)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
