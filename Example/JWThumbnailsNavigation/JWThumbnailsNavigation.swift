@@ -85,11 +85,18 @@ extension JWThumbnailsNavigation {
 extension JWThumbnailsNavigation {
 
     func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int = 0) {
+        if debug {
+            print(#function)
+        }
+        
         self.photos = photos
         let indexPath = IndexPath.init(item: indexOfSelectedItem, section: 0)
         self.indexPathOfPrefferedItem = indexPath
         
         self.thumbnailsCollectionView.reloadDataWithCompletion {
+            if self.debug {
+                print(#function)
+            }
             self.thumbnailsCollectionView.reloadDataCompletionBlock = nil
             
             if let photos = self.photos {
@@ -121,6 +128,10 @@ extension JWThumbnailsNavigation {
     }
     
     fileprivate func scrollToItem(at indexPath: IndexPath, animated: Bool = false) {
+        if debug {
+            print(#function)
+        }
+        
         guard let photos = self.photos else { return }
         
         if (0 <= indexPath.item && indexPath.item < photos.count) {
@@ -133,6 +144,10 @@ extension JWThumbnailsNavigation {
 extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDelegate {
     
     fileprivate func makeCollectionView() {
+        if debug {
+            print(#function)
+        }
+        
         let layout = JWThumbnailsNavigationFlowLayout()
         layout.delegate = self
         layout.scrollDirection = .horizontal
@@ -169,6 +184,10 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if debug {
+            print(#function)
+        }
+        
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! ImageCollectionViewCell
         
         if let photos = self.photos {
@@ -212,14 +231,19 @@ extension JWThumbnailsNavigation {
         }
         scrollStateMachine.scrolling(.willEndDragging)
         
-        print("original targetContentOffet: \(targetContentOffset.pointee.x),\(targetContentOffset.pointee.y)")
+        if debug {
+            print("original targetContentOffet: \(targetContentOffset.pointee.x),\(targetContentOffset.pointee.y)")
+        }
         let centerX = self.thumbnailsCollectionView.bounds.size.width / 2
         let centerY = self.thumbnailsCollectionView.bounds.size.height / 2
         let x = targetContentOffset.pointee.x + centerX
         let y = targetContentOffset.pointee.y + centerY
-        indexPathOfPrefferedItem = self.thumbnailsCollectionView.indexPathForItem(at: CGPoint(x: x, y: y))
         //FIXME: 셀 사이 여백에 걸려서 nil이 나오는 경우가 생김.
-        print("targetContentOffet: \(x),\(y), \(indexPathOfPrefferedItem)")
+        indexPathOfPrefferedItem = self.thumbnailsCollectionView.indexPathForItem(at: CGPoint(x: x, y: y))
+        
+        if debug {
+            print("targetContentOffet: \(x),\(y), \(String(describing: indexPathOfPrefferedItem))")
+        }
     }
     
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
@@ -260,7 +284,6 @@ extension JWThumbnailsNavigation {
 
 extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
     func scrollStateMachine(_ stateMachine: JWScrollStateMachine, didChangeState state: JWScrollState) {
-        //dump(state.rawValue)
         switch state {
         case .dragging:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
@@ -306,6 +329,10 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if debug {
+            print(#function)
+        }
+        
         let height = self.cellHeight()
         let width = self.cellWidth(expanded: false)
         
@@ -321,6 +348,13 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
                 let normalCellWidth = width
                 width = self.cellWidth(expanded: true)
                 offsetX = width - normalCellWidth
+                
+                if debug {
+                    print("itemWidthAtIndexPath")
+//                dump(targetIndexPath)
+//                dump(width)
+//                dump(offsetX)
+                }
             }
         }
         
@@ -329,6 +363,9 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         let insetX = CGFloat(1)
+        if debug {
+            print(#function)
+        }
         
         var insetY = CGFloat(0)
         let viewWidth = self.bounds.width
@@ -339,10 +376,16 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        if debug {
+            print(#function)
+        }
         return 1
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        if debug {
+            print(#function)
+        }
         return 1
     }
 
@@ -363,6 +406,8 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     var delegate: JWThumbnailsNavigationFlowLayoutDelegate!
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+//        print(#function)
+        
         let attributes = super.layoutAttributesForElements(in: rect)
         var attributesCopy = [UICollectionViewLayoutAttributes]()
         
@@ -383,7 +428,7 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
             
             itemAttributesCopy.frame = frame
             
-            print("\(itemAttributesCopy.indexPath):::::\(frame)")
+//            print("\(itemAttributesCopy.indexPath):::::\(frame)")
             
             attributesCopy.append(itemAttributesCopy)
         }
@@ -396,6 +441,8 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     }
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+//        print(#function)
+        
         let center = collectionView!.bounds.size.width / 2
         let proposedContentOffsetCenterOrigin = proposedContentOffset.x + center
         
