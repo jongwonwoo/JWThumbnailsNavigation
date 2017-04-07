@@ -306,12 +306,7 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let height = self.cellHeight()
-        var width = self.cellWidth(expanded: false)
-        if let targetIndexPath = indexPathOfPrefferedItem {
-            if targetIndexPath == indexPath {
-                width = self.cellWidth(expanded: true)
-            }
-        }
+        let width = self.cellWidth(expanded: false)
         
         return CGSize(width: width, height: height)
     }
