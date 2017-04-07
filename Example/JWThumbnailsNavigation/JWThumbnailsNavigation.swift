@@ -116,7 +116,7 @@ extension JWThumbnailsNavigation {
             }
         }
         
-        self.scrollToItem(at: indexPath, animated: animated)
+//        self.scrollToItem(at: indexPath, animated: animated)
         
     }
     
