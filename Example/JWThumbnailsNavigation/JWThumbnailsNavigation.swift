@@ -94,17 +94,20 @@ extension JWThumbnailsNavigation {
             
             if let photos = self.photos {
                 if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
-                    self.selectThumbnailAtIndexPath(indexPath, animated: false, fireEvent: false)
+                    self.selectThumbnailAtIndexPath(indexPath, fireEvent: false)
                 }
             }
         }
     }
     
     func selectItem(atIndex index: Int, animated: Bool = false) {
-        self.selectThumbnailAtIndexPath(IndexPath.init(item: index, section: 0), animated: animated, fireEvent: false)
+        let selectedIndexPath = IndexPath.init(item: index, section: 0)
+        
+        self.selectThumbnailAtIndexPath(selectedIndexPath, fireEvent: false)
+        self.scrollToItem(at: selectedIndexPath, animated: animated)
     }
 
-    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool, fireEvent: Bool) {
+    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, fireEvent: Bool) {
         indexPathOfPrefferedItem = indexPath
         
         if indexPathOfSelectedItem != indexPath {
@@ -115,9 +118,6 @@ extension JWThumbnailsNavigation {
                 delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
             }
         }
-        
-//        self.scrollToItem(at: indexPath, animated: animated)
-        
     }
     
     fileprivate func scrollToItem(at indexPath: IndexPath, animated: Bool = false) {
@@ -188,7 +188,8 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        selectThumbnailAtIndexPath(indexPath, animated: true, fireEvent: true)
+        selectThumbnailAtIndexPath(indexPath, fireEvent: true)
+        scrollToItem(at: indexPath, animated: true)
     }
 }
 
@@ -287,7 +288,7 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                     print("navigation didSelect: \(indexPath.item)")
                 }
                 
-                selectThumbnailAtIndexPath(indexPath, animated: true, fireEvent: true)
+                selectThumbnailAtIndexPath(indexPath, fireEvent: true)
             }
         default:
             break
