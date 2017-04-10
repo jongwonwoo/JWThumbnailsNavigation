@@ -339,15 +339,15 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
         return CGSize(width: width, height: height)
     }
 
-    func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, offsetX: CGFloat) {
-        var offsetX = CGFloat(0)
+    func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, expandedWidth: CGFloat) {
+        var expandedWidth = CGFloat(0)
         var width = self.cellWidth(expanded: false)
         
         if let targetIndexPath = self.indexPathOfPrefferedItem {
             if targetIndexPath == indexPath {
                 let normalCellWidth = width
                 width = self.cellWidth(expanded: true)
-                offsetX = width - normalCellWidth
+                expandedWidth = width - normalCellWidth
                 
                 if debug {
                     print("itemWidthAtIndexPath")
@@ -358,7 +358,7 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
             }
         }
         
-        return (width, offsetX)
+        return (width, expandedWidth)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
@@ -398,7 +398,7 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
 protocol JWThumbnailsNavigationFlowLayoutDelegate {
     
     func collectionViewTargetIndexPath(_ collectionView: UICollectionView) -> IndexPath?
-    func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, offsetX: CGFloat)
+    func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, expandedWidth: CGFloat)
     
 }
 
@@ -412,26 +412,45 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
         let attributes = super.layoutAttributesForElements(in: rect)
         var attributesCopy = [UICollectionViewLayoutAttributes]()
         
+        var attributesBeforeExpanedItem = [UICollectionViewLayoutAttributes]()
+        
         let spacing: CGFloat = 1
         var offsetX: CGFloat = 0
+        var halfOfExpandedWidth: CGFloat = 0
+        var passingExpandedItem = false
+        
         for itemAttributes in attributes! {
             let itemAttributesCopy = itemAttributes.copy() as! UICollectionViewLayoutAttributes
             
             var frame = itemAttributesCopy.frame
             
-            let (width, _) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributesCopy.indexPath)
+            let (width, expandedWidth) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributesCopy.indexPath)
             frame.size.width = width
             if (0 < offsetX) {
                 frame.origin.x = offsetX
+            }
+            
+            if 0 < expandedWidth {
+                passingExpandedItem = true
+                halfOfExpandedWidth = expandedWidth / 2
+                frame.origin.x = frame.origin.x - halfOfExpandedWidth
             }
             
             offsetX = frame.maxX + spacing
             
             itemAttributesCopy.frame = frame
             
-//            print("\(itemAttributesCopy.indexPath):::::\(frame)")
-            
             attributesCopy.append(itemAttributesCopy)
+            
+            if !passingExpandedItem {
+                attributesBeforeExpanedItem.append(itemAttributesCopy)
+            }
+        }
+        
+        for itemAttributes in attributesBeforeExpanedItem {
+            var frame = itemAttributes.frame
+            frame.origin.x = frame.origin.x - halfOfExpandedWidth
+            itemAttributes.frame = frame
         }
         
         return attributesCopy
