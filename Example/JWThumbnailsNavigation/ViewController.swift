@@ -23,7 +23,7 @@ class ViewController: UIViewController {
         didSet {
             indexOfSelectedPhoto = 0
             showPhotoAtInex(indexOfSelectedPhoto)
-            thumbnailsNavigation.setPhotos(self.photos)
+            thumbnailsNavigation.setPhotos(self.photos, andIndexOfSelectedItem:indexOfSelectedPhoto)
         }
     }
     
@@ -86,20 +86,20 @@ class ViewController: UIViewController {
 
 extension ViewController: JWThumbnailsNavigationDelegate {
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didDragItemAt index: Int) {
-        print("didDrag: \(index)")
+//        print("didDrag: \(index)")
         
         showPhotoAtInex(index, preferredLowQuality: false)
         indexOfDraggingPhoto = index
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int) {
-        print("didScroll: \(index)")
+//        print("didScroll: \(index)")
         
         showPhotoAtInex(index, preferredLowQuality: true)
     }
     
     func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int) {
-        print("didSelect: \(index)")
+//        print("didSelect: \(index)")
         showPhotoAtInex(index, preferredLowQuality: false)
         indexOfSelectedPhoto = index
     }

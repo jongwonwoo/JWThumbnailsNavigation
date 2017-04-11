@@ -19,7 +19,7 @@ import Photos
 
 class JWThumbnailsNavigation: UIView {
 
-    fileprivate let debug = true
+    fileprivate let debug = false
     
     weak var delegate: JWThumbnailsNavigationDelegate?
     
@@ -45,7 +45,7 @@ class JWThumbnailsNavigation: UIView {
         }
     }
     
-    fileprivate var indexPathOfTargetContentOffset: IndexPath?
+    fileprivate var indexPathOfPrefferedItem: IndexPath?
     
     fileprivate let photoFetcher = JWPhotoFetcher()
     fileprivate var photos: PHFetchResult<PHAsset>?
@@ -84,26 +84,38 @@ extension JWThumbnailsNavigation {
 
 extension JWThumbnailsNavigation {
 
-    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int? = 0) {
+    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int = 0) {
+        if debug {
+            print(#function)
+        }
+        
         self.photos = photos
+        let indexPath = IndexPath.init(item: indexOfSelectedItem, section: 0)
+        self.indexPathOfPrefferedItem = indexPath
         
         self.thumbnailsCollectionView.reloadDataWithCompletion {
+            if self.debug {
+                print(#function)
+            }
             self.thumbnailsCollectionView.reloadDataCompletionBlock = nil
             
-            if let photos = self.photos, let indexOfSelectedItem = indexOfSelectedItem {
+            if let photos = self.photos {
                 if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
-                    self.selectThumbnailAtIndexPath(IndexPath.init(item: indexOfSelectedItem, section: 0), animated: false, fireEvent: false)
+                    self.selectThumbnailAtIndexPath(indexPath, fireEvent: false)
                 }
             }
         }
     }
     
     func selectItem(atIndex index: Int, animated: Bool = false) {
-        self.selectThumbnailAtIndexPath(IndexPath.init(item: index, section: 0), animated: animated, fireEvent: false)
+        let selectedIndexPath = IndexPath.init(item: index, section: 0)
+        
+        self.selectThumbnailAtIndexPath(selectedIndexPath, fireEvent: false)
+        self.scrollToItem(at: selectedIndexPath, animated: animated)
     }
 
-    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, animated: Bool, fireEvent: Bool) {
-        indexPathOfTargetContentOffset = indexPath
+    fileprivate func selectThumbnailAtIndexPath(_ indexPath: IndexPath, fireEvent: Bool) {
+        indexPathOfPrefferedItem = indexPath
         
         if indexPathOfSelectedItem != indexPath {
             //print("navigation didSelect: \(index)")
@@ -113,12 +125,13 @@ extension JWThumbnailsNavigation {
                 delegate?.thumbnailsNavigation?(self, didSelectItemAt: indexPath.item)
             }
         }
-        
-        self.scrollToItem(at: indexPath, animated: animated)
-        
     }
     
     fileprivate func scrollToItem(at indexPath: IndexPath, animated: Bool = false) {
+        if debug {
+            print(#function)
+        }
+        
         guard let photos = self.photos else { return }
         
         if (0 <= indexPath.item && indexPath.item < photos.count) {
@@ -131,6 +144,10 @@ extension JWThumbnailsNavigation {
 extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDelegate {
     
     fileprivate func makeCollectionView() {
+        if debug {
+            print(#function)
+        }
+        
         let layout = JWThumbnailsNavigationFlowLayout()
         layout.delegate = self
         layout.scrollDirection = .horizontal
@@ -167,6 +184,10 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if debug {
+            print(#function)
+        }
+        
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! ImageCollectionViewCell
         
         if let photos = self.photos {
@@ -186,7 +207,8 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        selectThumbnailAtIndexPath(indexPath, animated: true, fireEvent: true)
+        selectThumbnailAtIndexPath(indexPath, fireEvent: true)
+        scrollToItem(at: indexPath, animated: true)
     }
 }
 
@@ -200,7 +222,7 @@ extension JWThumbnailsNavigation {
         
 
         indexPathOfSelectedItem = nil
-        indexPathOfTargetContentOffset = nil
+        indexPathOfPrefferedItem = nil
     }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
@@ -209,11 +231,19 @@ extension JWThumbnailsNavigation {
         }
         scrollStateMachine.scrolling(.willEndDragging)
         
-        let center = self.thumbnailsCollectionView.bounds.size.width / 2
-        let x = targetContentOffset.pointee.x + center
-        let y = targetContentOffset.pointee.y
-        indexPathOfTargetContentOffset = self.thumbnailsCollectionView.indexPathForItem(at: CGPoint(x: x, y: y))
-        print("targetContentOffet: \(x),\(y), \(indexPathOfTargetContentOffset)")
+        if debug {
+            print("original targetContentOffet: \(targetContentOffset.pointee.x),\(targetContentOffset.pointee.y)")
+        }
+        let centerX = self.thumbnailsCollectionView.bounds.size.width / 2
+        let centerY = self.thumbnailsCollectionView.bounds.size.height / 2
+        let x = targetContentOffset.pointee.x + centerX
+        let y = targetContentOffset.pointee.y + centerY
+        //FIXME: 셀 사이 여백에 걸려서 nil이 나오는 경우가 생김.
+        indexPathOfPrefferedItem = self.thumbnailsCollectionView.indexPathForItem(at: CGPoint(x: x, y: y))
+        
+        if debug {
+            print("targetContentOffet: \(x),\(y), \(String(describing: indexPathOfPrefferedItem))")
+        }
     }
     
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
@@ -254,7 +284,6 @@ extension JWThumbnailsNavigation {
 
 extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
     func scrollStateMachine(_ stateMachine: JWScrollStateMachine, didChangeState state: JWScrollState) {
-        //dump(state.rawValue)
         switch state {
         case .dragging:
             if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
@@ -282,7 +311,7 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                     print("navigation didSelect: \(indexPath.item)")
                 }
                 
-                selectThumbnailAtIndexPath(indexPath, animated: true, fireEvent: true)
+                selectThumbnailAtIndexPath(indexPath, fireEvent: true)
             }
         default:
             break
@@ -290,45 +319,86 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
     }
 }
 
-extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout {
+extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnailsNavigationFlowLayoutDelegate {
+    private func cellHeight() -> CGFloat {
+        return self.bounds.height - 2
+    }
+    
+    private func cellWidth(expanded: Bool) -> CGFloat {
+        return expanded ? cellHeight() * 1.5 : cellHeight() * 0.5
+    }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let height = self.bounds.height
-        var width = height * 0.5
-        if let indexPathOfTargetContentOffset = indexPathOfTargetContentOffset {
-            if indexPath == indexPathOfTargetContentOffset {
-                width += height
-            }
+        if debug {
+            print(#function)
         }
+        
+        let height = self.cellHeight()
+        let width = self.cellWidth(expanded: false)
         
         return CGSize(width: width, height: height)
     }
+
+    func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, expandedWidth: CGFloat) {
+        var expandedWidth = CGFloat(0)
+        var width = self.cellWidth(expanded: false)
+        
+        if let targetIndexPath = self.indexPathOfPrefferedItem {
+            if targetIndexPath == indexPath {
+                let normalCellWidth = width
+                width = self.cellWidth(expanded: true)
+                expandedWidth = width - normalCellWidth
+                
+                if debug {
+                    print("itemWidthAtIndexPath")
+//                dump(targetIndexPath)
+//                dump(width)
+//                dump(offsetX)
+                }
+            }
+        }
+        
+        return (width, expandedWidth)
+    }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        let insetX = CGFloat(1)
-        var insetY = CGFloat(0)
-        let viewWidth = self.bounds.width
-        let viewHeight = self.bounds.height
-        let cellWidth = viewHeight * 0.5
-        insetY = (viewWidth - cellWidth) / 2
+        if debug {
+            print(#function)
+        }
         
-        return UIEdgeInsets(top: insetX, left: insetY, bottom: insetX, right: insetY)
+        let insetY = CGFloat(1)
+        
+        var insetX = CGFloat(0)
+        let viewWidth = self.bounds.width
+        let cellWidth = self.cellWidth(expanded: false)
+        insetX = (viewWidth - cellWidth) / 2
+        
+        return UIEdgeInsets(top: insetY, left: insetX, bottom: insetY, right: insetX)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        if debug {
+            print(#function)
+        }
+        return 1
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        if debug {
+            print(#function)
+        }
         return 1
     }
-}
-
-extension JWThumbnailsNavigation: JWThumbnailsNavigationFlowLayoutDelegate {
 
     func collectionViewTargetIndexPath(_ collectionView: UICollectionView) -> IndexPath? {
-        return self.indexPathOfTargetContentOffset
+        return self.indexPathOfPrefferedItem
     }
 }
 
 protocol JWThumbnailsNavigationFlowLayoutDelegate {
     
     func collectionViewTargetIndexPath(_ collectionView: UICollectionView) -> IndexPath?
+    func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, expandedWidth: CGFloat)
     
 }
 
@@ -338,33 +408,52 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
 //        print(#function)
-        let attributes = super.layoutAttributesForElements(in: rect)
         
-        var expanded = false
+        let attributes = super.layoutAttributesForElements(in: rect)
+        var attributesCopy = [UICollectionViewLayoutAttributes]()
+        
+        var attributesBeforeExpanedItem = [UICollectionViewLayoutAttributes]()
+        
+        let spacing: CGFloat = 1
         var offsetX: CGFloat = 0
+        var halfOfExpandedWidth: CGFloat = 0
+        var passingExpandedItem = false
+        
         for itemAttributes in attributes! {
-            var frame = itemAttributes.frame
-            if expanded {
-                frame.origin.x = frame.minX + offsetX
+            let itemAttributesCopy = itemAttributes.copy() as! UICollectionViewLayoutAttributes
+            
+            var frame = itemAttributesCopy.frame
+            
+            let (width, expandedWidth) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributesCopy.indexPath)
+            frame.size.width = width
+            if (0 < offsetX) {
+                frame.origin.x = offsetX
             }
             
-            if let indexPath = delegate.collectionViewTargetIndexPath(collectionView!) {
-                if indexPath == itemAttributes.indexPath {
-                    frame.size.width = collectionView!.frame.height * 0.5 + collectionView!.frame.height
-                    expanded = true
-                    offsetX = collectionView!.frame.height
-                } else {
-                    frame.size.width = collectionView!.frame.height * 0.5
-                }
-            } else {
-                frame.size.width = collectionView!.frame.height * 0.5
+            if 0 < expandedWidth {
+                passingExpandedItem = true
+                halfOfExpandedWidth = expandedWidth / 2
+                frame.origin.x = frame.origin.x - halfOfExpandedWidth
             }
             
-            itemAttributes.frame = frame
-//            print("\(itemAttributes.indexPath):::::\(frame)")
+            offsetX = frame.maxX + spacing
+            
+            itemAttributesCopy.frame = frame
+            
+            attributesCopy.append(itemAttributesCopy)
+            
+            if !passingExpandedItem {
+                attributesBeforeExpanedItem.append(itemAttributesCopy)
+            }
         }
         
-        return attributes
+        for itemAttributes in attributesBeforeExpanedItem {
+            var frame = itemAttributes.frame
+            frame.origin.x = frame.origin.x - halfOfExpandedWidth
+            itemAttributes.frame = frame
+        }
+        
+        return attributesCopy
     }
     
     override open func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
@@ -372,6 +461,8 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     }
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+//        print(#function)
+        
         let center = collectionView!.bounds.size.width / 2
         let proposedContentOffsetCenterOrigin = proposedContentOffset.x + center
         
