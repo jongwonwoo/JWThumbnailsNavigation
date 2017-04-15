@@ -20,7 +20,6 @@ enum JWScrollEvent: Int {
 }
 
 @objc enum JWScrollState: Int {
-    case none
     case beginDragging
     case dragging
     case beginDecelerating
@@ -38,7 +37,7 @@ class JWScrollStateMachine: NSObject {
     
     weak var delegate: JWScrollStateMachineDelegate?
     
-    private var state: JWScrollState = .none {
+    private var state: JWScrollState = .stop {
         didSet {
             switch state {
             case .dragging, .decelerating, .stop:
