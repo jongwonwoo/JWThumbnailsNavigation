@@ -135,7 +135,15 @@ extension JWThumbnailsNavigation {
         guard let photos = self.photos else { return }
         
         if (0 <= indexPath.item && indexPath.item < photos.count) {
-            self.thumbnailsCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
+            let collectionViewLayout = self.thumbnailsCollectionView.collectionViewLayout as! UICollectionViewFlowLayout
+            if let attributes = collectionViewLayout.layoutAttributesForItem(at: indexPath) {
+                let centerX = self.thumbnailsCollectionView.bounds.size.width / 2
+                let center = attributes.center
+                let contentOffset = self.thumbnailsCollectionView.contentOffset
+                
+                let targetContentOffset = CGPoint(x: floor(center.x - centerX), y: contentOffset.y)
+                self.thumbnailsCollectionView.setContentOffset(targetContentOffset, animated: animated)
+            }
         }
     }
     
