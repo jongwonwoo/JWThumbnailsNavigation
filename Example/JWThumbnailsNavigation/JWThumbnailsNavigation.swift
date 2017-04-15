@@ -103,6 +103,7 @@ extension JWThumbnailsNavigation {
             if let photos = self.photos {
                 if (0 <= indexOfSelectedItem && indexOfSelectedItem < photos.count) {
                     self.selectThumbnailAtIndexPath(indexPath, fireEvent: false)
+                    self.scrollToItem(at: indexPath, animated: false)
                 }
             }
         }
