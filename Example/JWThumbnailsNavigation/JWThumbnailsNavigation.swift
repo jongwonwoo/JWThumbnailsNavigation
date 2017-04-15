@@ -223,13 +223,21 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     
     func fetchPhoto(for asset: PHAsset, targetSize: CGSize, contentMode: PHImageContentMode, preferredLowQuality: Bool, completion: @escaping (UIImage?, Bool) -> Swift.Void) {
         self.imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, options: nil, resultHandler: { (result, info) in
-            let isDegraded :NSNumber = info?[PHImageResultIsDegradedKey] as! NSNumber
-            if (preferredLowQuality) {
-                if (isDegraded.boolValue) {
+            if result == nil {
+                completion(nil, false)
+                return
+            }
+            
+            if let isDegraded = info?[PHImageResultIsDegradedKey] as? NSNumber {
+                if (preferredLowQuality) {
+                    if (isDegraded.boolValue) {
+                        completion(result, isDegraded.boolValue)
+                    }
+                } else {
                     completion(result, isDegraded.boolValue)
                 }
             } else {
-                completion(result, isDegraded.boolValue)
+                completion(result, false)
             }
         })
     }
@@ -513,8 +521,10 @@ private class CustomCollectionView: UICollectionView {
         reloadDataCompletionBlock = completion
         super.reloadData()
     }
-    
-    fileprivate func indexPathForVisibleCenter() -> IndexPath? {
+}
+
+private extension UICollectionView {
+    func indexPathForVisibleCenter() -> IndexPath? {
         var visibleRect = CGRect()
         visibleRect.origin = self.contentOffset
         visibleRect.size = self.bounds.size
