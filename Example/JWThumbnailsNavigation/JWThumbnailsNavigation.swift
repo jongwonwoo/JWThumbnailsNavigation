@@ -47,7 +47,8 @@ class JWThumbnailsNavigation: UIView {
     
     fileprivate var indexPathOfPrefferedItem: IndexPath?
     
-    fileprivate let photoFetcher = JWPhotoFetcher()
+    fileprivate let imageManager = PHImageManager()
+    
     fileprivate var photos: PHFetchResult<PHAsset>?
     
     override init(frame: CGRect) {
@@ -204,7 +205,7 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
             let itemSize = collectionViewLayout.itemSize
             let scale = UIScreen.main.scale
             let targetSize = CGSize.init(width: itemSize.width * scale, height: itemSize.height * scale)
-            self.photoFetcher.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, preferredLowQuality: false, completion: { image, isLowQuality in
+            self.fetchPhoto(for: asset, targetSize: targetSize, contentMode: .aspectFill, preferredLowQuality: false, completion: { image, isLowQuality in
                 DispatchQueue.main.async {
                     cell.image = image;
                 }
@@ -217,6 +218,20 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         selectThumbnailAtIndexPath(indexPath, fireEvent: true)
         scrollToItem(at: indexPath, animated: true)
+    }
+    
+    
+    func fetchPhoto(for asset: PHAsset, targetSize: CGSize, contentMode: PHImageContentMode, preferredLowQuality: Bool, completion: @escaping (UIImage?, Bool) -> Swift.Void) {
+        self.imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, options: nil, resultHandler: { (result, info) in
+            let isDegraded :NSNumber = info?[PHImageResultIsDegradedKey] as! NSNumber
+            if (preferredLowQuality) {
+                if (isDegraded.boolValue) {
+                    completion(result, isDegraded.boolValue)
+                }
+            } else {
+                completion(result, isDegraded.boolValue)
+            }
+        })
     }
 }
 
