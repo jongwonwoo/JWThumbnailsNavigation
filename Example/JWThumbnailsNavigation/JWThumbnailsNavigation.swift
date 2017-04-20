@@ -77,6 +77,8 @@ extension JWThumbnailsNavigation {
         super.layoutSubviews()
         
         self.thumbnailsCollectionView.collectionViewLayout.invalidateLayout()
+        self.layoutIfNeeded()
+        
         if let indexPath = indexPathOfSelectedItem {
             self.scrollToItem(at: indexPath)
         }
