@@ -449,8 +449,56 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
         
         let spacing: CGFloat = 1
         var offsetX: CGFloat = 0
-        var halfOfExpandedWidth: CGFloat = 0
         var passingExpandedItem = false
+        var halfOfExpandedWidth: CGFloat = 0
+        
+        func expandFrame(_ frame: CGRect, width: CGFloat, expandedWidth: CGFloat, offsetX: CGFloat) -> CGRect {
+            var expandedFrame: CGRect?
+            
+            if let targetContentOffset = self.targetContentOffset {
+                if let contentOffset = collectionView?.contentOffset {
+                    let threshold: CGFloat = 5
+                    if abs(targetContentOffset.x - contentOffset.x) < threshold {
+                        expandedFrame = expandFrame(frame, width: width, expandedWidth: expandedWidth)
+                    }
+                }
+            } else {
+                expandedFrame = expandFrame(frame, width: width, expandedWidth: expandedWidth)
+            }
+            
+            if expandedFrame == nil {
+                expandedFrame = modifyFrame(frame, width: width, offsetX: offsetX)
+            }
+            
+            return expandedFrame!
+        }
+        
+        func expandFrame(_ frame: CGRect, width: CGFloat, expandedWidth: CGFloat) -> CGRect {
+            passingExpandedItem = true
+            
+            var expandedFrame = frame
+            
+            expandedFrame.size.width = width + expandedWidth
+            
+            if (0 < offsetX) {
+                expandedFrame.origin.x = offsetX
+            }
+            halfOfExpandedWidth = expandedWidth / 2
+            expandedFrame.origin.x -= halfOfExpandedWidth
+            
+            return expandedFrame
+        }
+        
+        func modifyFrame(_ frame: CGRect, width: CGFloat, offsetX: CGFloat) -> CGRect {
+            var modifiedFrame = frame
+            
+            modifiedFrame.size.width = width
+            if (0 < offsetX) {
+                modifiedFrame.origin.x = offsetX
+            }
+            
+            return modifiedFrame
+        }
         
         for itemAttributes in attributes! {
             let itemAttributesCopy = itemAttributes.copy() as! UICollectionViewLayoutAttributes
@@ -458,37 +506,9 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
             var frame = itemAttributesCopy.frame
             let (width, expandedWidth) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributesCopy.indexPath)
             if 0 < expandedWidth {
-                if let contentOffset = collectionView?.contentOffset,
-                    let targetContentOffset = self.targetContentOffset {
-                    let threshold: CGFloat = 5
-                    if abs(targetContentOffset.x - contentOffset.x) < threshold {
-                        passingExpandedItem = true
-                        
-                        frame.size.width = width + expandedWidth
-                        
-                        if (0 < offsetX) {
-                            frame.origin.x = offsetX
-                        }
-                        halfOfExpandedWidth = expandedWidth / 2
-                        frame.origin.x -= halfOfExpandedWidth
-                    } else {
-                        frame.size.width = width
-                        if (0 < offsetX) {
-                            frame.origin.x = offsetX
-                        }
-                    }
-                } else {
-                    frame.size.width = width
-                    if (0 < offsetX) {
-                        frame.origin.x = offsetX
-                    }
-                }
-                
+                frame = expandFrame(frame, width: width, expandedWidth: expandedWidth, offsetX: offsetX)
             } else {
-                frame.size.width = width
-                if (0 < offsetX) {
-                    frame.origin.x = offsetX
-                }
+                frame = modifyFrame(frame, width: width, offsetX: offsetX)
             }
             
             offsetX = frame.maxX + spacing
