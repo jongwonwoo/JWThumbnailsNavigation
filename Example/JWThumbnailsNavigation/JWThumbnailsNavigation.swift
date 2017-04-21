@@ -375,13 +375,11 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
 
     func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, expandedWidth: CGFloat) {
         var expandedWidth = CGFloat(0)
-        var width = self.cellWidth(expanded: false)
+        let width = self.cellWidth(expanded: false)
         
         if let targetIndexPath = self.indexPathOfPrefferedItem {
             if targetIndexPath == indexPath {
-                let normalCellWidth = width
-                width = self.cellWidth(expanded: true)
-                expandedWidth = width - normalCellWidth
+                expandedWidth = self.cellWidth(expanded: true) - width
                 
                 if debug {
                     print("itemWidthAtIndexPath")
@@ -457,17 +455,22 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
             let itemAttributesCopy = itemAttributes.copy() as! UICollectionViewLayoutAttributes
             
             var frame = itemAttributesCopy.frame
-            
             let (width, expandedWidth) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributesCopy.indexPath)
-            frame.size.width = width
-            if (0 < offsetX) {
-                frame.origin.x = offsetX
-            }
-            
             if 0 < expandedWidth {
                 passingExpandedItem = true
+                
+                frame.size.width = width + expandedWidth
+                
+                if (0 < offsetX) {
+                    frame.origin.x = offsetX
+                }
                 halfOfExpandedWidth = expandedWidth / 2
-                frame.origin.x = frame.origin.x - halfOfExpandedWidth
+                frame.origin.x -= halfOfExpandedWidth
+            } else {
+                frame.size.width = width
+                if (0 < offsetX) {
+                    frame.origin.x = offsetX
+                }
             }
             
             offsetX = frame.maxX + spacing
