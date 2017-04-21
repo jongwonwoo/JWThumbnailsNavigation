@@ -139,7 +139,7 @@ extension JWThumbnailsNavigation {
         guard let photos = self.photos else { return }
         
         if (0 <= indexPath.item && indexPath.item < photos.count) {
-            let collectionViewLayout = self.thumbnailsCollectionView.collectionViewLayout as! UICollectionViewFlowLayout
+            let collectionViewLayout = self.thumbnailsCollectionView.collectionViewLayout as! JWThumbnailsNavigationFlowLayout
             if let attributes = collectionViewLayout.layoutAttributesForItem(at: indexPath) {
                 let centerX = self.thumbnailsCollectionView.bounds.size.width / 2
                 let center = attributes.center
@@ -147,6 +147,7 @@ extension JWThumbnailsNavigation {
                 
                 let targetContentOffset = CGPoint(x: floor(center.x - centerX), y: contentOffset.y)
                 self.thumbnailsCollectionView.setContentOffset(targetContentOffset, animated: animated)
+                collectionViewLayout.targetContentOffset = targetContentOffset
             }
         }
     }
@@ -437,13 +438,13 @@ protocol JWThumbnailsNavigationFlowLayoutDelegate {
 
 class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     var delegate: JWThumbnailsNavigationFlowLayoutDelegate!
+    var targetContentOffset: CGPoint?
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
 //        print(#function)
         
         let attributes = super.layoutAttributesForElements(in: rect)
         var attributesCopy = [UICollectionViewLayoutAttributes]()
-        
         var attributesBeforeExpanedItem = [UICollectionViewLayoutAttributes]()
         
         let spacing: CGFloat = 1
@@ -457,15 +458,32 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
             var frame = itemAttributesCopy.frame
             let (width, expandedWidth) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributesCopy.indexPath)
             if 0 < expandedWidth {
-                passingExpandedItem = true
-                
-                frame.size.width = width + expandedWidth
-                
-                if (0 < offsetX) {
-                    frame.origin.x = offsetX
+                if let contentOffset = collectionView?.contentOffset,
+                    let targetContentOffset = self.targetContentOffset {
+                    let threshold: CGFloat = 5
+                    if abs(targetContentOffset.x - contentOffset.x) < threshold {
+                        passingExpandedItem = true
+                        
+                        frame.size.width = width + expandedWidth
+                        
+                        if (0 < offsetX) {
+                            frame.origin.x = offsetX
+                        }
+                        halfOfExpandedWidth = expandedWidth / 2
+                        frame.origin.x -= halfOfExpandedWidth
+                    } else {
+                        frame.size.width = width
+                        if (0 < offsetX) {
+                            frame.origin.x = offsetX
+                        }
+                    }
+                } else {
+                    frame.size.width = width
+                    if (0 < offsetX) {
+                        frame.origin.x = offsetX
+                    }
                 }
-                halfOfExpandedWidth = expandedWidth / 2
-                frame.origin.x -= halfOfExpandedWidth
+                
             } else {
                 frame.size.width = width
                 if (0 < offsetX) {
@@ -507,6 +525,8 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
         let closest = layoutAttributes!.sorted { abs($0.center.x - proposedContentOffsetCenterOrigin) < abs($1.center.x - proposedContentOffsetCenterOrigin) }.first ?? UICollectionViewLayoutAttributes()
         
         let targetContentOffset = CGPoint(x: floor(closest.center.x - center), y: proposedContentOffset.y)
+        
+        self.targetContentOffset = targetContentOffset
         
         return targetContentOffset
     }
