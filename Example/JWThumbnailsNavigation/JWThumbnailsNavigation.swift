@@ -226,20 +226,18 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
     
     
     func fetchPhoto(for asset: PHAsset, targetSize: CGSize, contentMode: PHImageContentMode, preferredLowQuality: Bool, completion: @escaping (UIImage?, Bool) -> Swift.Void) {
-        self.imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, options: nil, resultHandler: { (result, info) in
+        let options = PHImageRequestOptions()
+        options.deliveryMode = preferredLowQuality ? .fastFormat : .highQualityFormat
+        
+        self.imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, options: options, resultHandler: { (result, info) in
+            //            dump(info)
             if result == nil {
                 completion(nil, false)
                 return
             }
             
             if let isDegraded = info?[PHImageResultIsDegradedKey] as? NSNumber {
-                if (preferredLowQuality) {
-                    if (isDegraded.boolValue) {
-                        completion(result, isDegraded.boolValue)
-                    }
-                } else {
-                    completion(result, isDegraded.boolValue)
-                }
+                completion(result, isDegraded.boolValue)
             } else {
                 completion(result, false)
             }
