@@ -19,7 +19,7 @@ class ViewController: UIViewController {
     fileprivate var indexOfSelectedPhoto: Int = -1
     
     fileprivate let photoFetcher = JWPhotoFetcher()
-    fileprivate var photos: PHFetchResult<PHAsset>? {
+    fileprivate var photos: Array<PHAsset>? {
         didSet {
             indexOfSelectedPhoto = 0
             showPhotoAtInex(indexOfSelectedPhoto)
@@ -124,7 +124,7 @@ extension ViewController: JWThumbnailsNavigationDelegate {
 
 extension ViewController {
     fileprivate func registerForPhotosDidChange() {
-        self.photoFetcher.photosDidChange { [unowned self] (photos: PHFetchResult<PHAsset>?, changes: PHFetchResultChangeDetails<PHAsset>?) in
+        self.photoFetcher.photosDidChange { [unowned self] (photos: Array<PHAsset>?, changes: PHFetchResultChangeDetails<PHAsset>?) in
             DispatchQueue.main.async {
                 if let collectionChanges = changes {
                     self.photos = photos

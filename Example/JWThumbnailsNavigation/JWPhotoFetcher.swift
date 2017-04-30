@@ -12,7 +12,7 @@ import Photos
 class JWPhotoFetcher: NSObject, PHPhotoLibraryChangeObserver {
     fileprivate let imageManager = PHImageManager()
     var fetchResult: PHFetchResult<PHAsset>?
-    var changeHandler: ((PHFetchResult<PHAsset>?, PHFetchResultChangeDetails<PHAsset>?) -> Void)?
+    var changeHandler: ((Array<PHAsset>?, PHFetchResultChangeDetails<PHAsset>?) -> Void)?
     
     public override init() {
         super.init()
@@ -20,12 +20,21 @@ class JWPhotoFetcher: NSObject, PHPhotoLibraryChangeObserver {
         PHPhotoLibrary.shared().register(self)
     }
     
-    func fetchPhotos() -> PHFetchResult<PHAsset>? {
+    func fetchPhotos() -> Array<PHAsset>? {
         let options = PHFetchOptions()
         options.sortDescriptors = [NSSortDescriptor.init(key: "creationDate", ascending: false)]
         self.fetchResult = PHAsset.fetchAssets(with: options)
         
-        return self.fetchResult
+        return filterPhotos(self.fetchResult)
+    }
+    
+    private func filterPhotos(_ fetchResult: PHFetchResult<PHAsset>?) -> Array<PHAsset> {
+        var assets = Array<PHAsset>();
+        fetchResult?.enumerateObjects({ (asset, index, stop) in
+            assets.append(asset)
+        })
+        
+        return assets
     }
     
     func fetchPhoto(for asset: PHAsset, targetSize: CGSize, contentMode: PHImageContentMode, preferredLowQuality: Bool, completion: @escaping (UIImage?, Bool) -> Swift.Void) {
@@ -41,7 +50,7 @@ class JWPhotoFetcher: NSObject, PHPhotoLibraryChangeObserver {
         })
     }
     
-    func photosDidChange(_ handler: @escaping (PHFetchResult<PHAsset>?, PHFetchResultChangeDetails<PHAsset>?) -> Void) {
+    func photosDidChange(_ handler: @escaping (Array<PHAsset>?, PHFetchResultChangeDetails<PHAsset>?) -> Void) {
         self.changeHandler = handler
     }
     
@@ -53,8 +62,8 @@ class JWPhotoFetcher: NSObject, PHPhotoLibraryChangeObserver {
         DispatchQueue.main.async {
             if let collectionChanges = changeInstance.changeDetails(for: fetchResult) {
                 self.fetchResult = collectionChanges.fetchResultAfterChanges
-                
-                handler(self.fetchResult, collectionChanges)
+                let assets = self.filterPhotos(self.fetchResult)
+                handler(assets, collectionChanges)
             }
         }
     }

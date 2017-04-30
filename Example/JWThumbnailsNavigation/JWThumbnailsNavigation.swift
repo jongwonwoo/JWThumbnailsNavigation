@@ -49,7 +49,7 @@ class JWThumbnailsNavigation: UIView {
     
     fileprivate let imageManager = PHImageManager()
     
-    fileprivate var photos: PHFetchResult<PHAsset>?
+    fileprivate var photos: Array<PHAsset>?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -87,7 +87,7 @@ extension JWThumbnailsNavigation {
 
 extension JWThumbnailsNavigation {
 
-    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int = 0) {
+    func setPhotos(_ photos: Array<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int = 0) {
         if debug {
             print(#function)
         }
@@ -139,7 +139,7 @@ extension JWThumbnailsNavigation {
         guard let photos = self.photos else { return }
         
         if (0 <= indexPath.item && indexPath.item < photos.count) {
-            let collectionViewLayout = self.thumbnailsCollectionView.collectionViewLayout as! UICollectionViewFlowLayout
+            let collectionViewLayout = self.thumbnailsCollectionView.collectionViewLayout as! JWThumbnailsNavigationFlowLayout
             if let attributes = collectionViewLayout.layoutAttributesForItem(at: indexPath) {
                 let centerX = self.thumbnailsCollectionView.bounds.size.width / 2
                 let center = attributes.center
@@ -147,6 +147,7 @@ extension JWThumbnailsNavigation {
                 
                 let targetContentOffset = CGPoint(x: floor(center.x - centerX), y: contentOffset.y)
                 self.thumbnailsCollectionView.setContentOffset(targetContentOffset, animated: animated)
+                collectionViewLayout.targetContentOffset = targetContentOffset
             }
         }
     }
@@ -375,13 +376,11 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
 
     func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, expandedWidth: CGFloat) {
         var expandedWidth = CGFloat(0)
-        var width = self.cellWidth(expanded: false)
+        let width = self.cellWidth(expanded: false)
         
         if let targetIndexPath = self.indexPathOfPrefferedItem {
             if targetIndexPath == indexPath {
-                let normalCellWidth = width
-                width = self.cellWidth(expanded: true)
-                expandedWidth = width - normalCellWidth
+                expandedWidth = self.cellWidth(expanded: true) - width
                 
                 if debug {
                     print("itemWidthAtIndexPath")
@@ -439,35 +438,77 @@ protocol JWThumbnailsNavigationFlowLayoutDelegate {
 
 class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     var delegate: JWThumbnailsNavigationFlowLayoutDelegate!
+    var targetContentOffset: CGPoint?
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
 //        print(#function)
         
         let attributes = super.layoutAttributesForElements(in: rect)
         var attributesCopy = [UICollectionViewLayoutAttributes]()
-        
         var attributesBeforeExpanedItem = [UICollectionViewLayoutAttributes]()
         
         let spacing: CGFloat = 1
         var offsetX: CGFloat = 0
-        var halfOfExpandedWidth: CGFloat = 0
         var passingExpandedItem = false
+        var halfOfExpandedWidth: CGFloat = 0
+        
+        func expandFrame(_ frame: CGRect, width: CGFloat, expandedWidth: CGFloat, offsetX: CGFloat) -> CGRect {
+            var expandedFrame: CGRect?
+            
+            if let targetContentOffset = self.targetContentOffset {
+                if let contentOffset = collectionView?.contentOffset {
+                    let threshold: CGFloat = 5
+                    if abs(targetContentOffset.x - contentOffset.x) < threshold {
+                        expandedFrame = expandFrame(frame, width: width, expandedWidth: expandedWidth)
+                    }
+                }
+            } else {
+                expandedFrame = expandFrame(frame, width: width, expandedWidth: expandedWidth)
+            }
+            
+            if expandedFrame == nil {
+                expandedFrame = modifyFrame(frame, width: width, offsetX: offsetX)
+            }
+            
+            return expandedFrame!
+        }
+        
+        func expandFrame(_ frame: CGRect, width: CGFloat, expandedWidth: CGFloat) -> CGRect {
+            passingExpandedItem = true
+            
+            var expandedFrame = frame
+            
+            expandedFrame.size.width = width + expandedWidth
+            
+            if (0 < offsetX) {
+                expandedFrame.origin.x = offsetX
+            }
+            halfOfExpandedWidth = expandedWidth / 2
+            expandedFrame.origin.x -= halfOfExpandedWidth
+            
+            return expandedFrame
+        }
+        
+        func modifyFrame(_ frame: CGRect, width: CGFloat, offsetX: CGFloat) -> CGRect {
+            var modifiedFrame = frame
+            
+            modifiedFrame.size.width = width
+            if (0 < offsetX) {
+                modifiedFrame.origin.x = offsetX
+            }
+            
+            return modifiedFrame
+        }
         
         for itemAttributes in attributes! {
             let itemAttributesCopy = itemAttributes.copy() as! UICollectionViewLayoutAttributes
             
             var frame = itemAttributesCopy.frame
-            
             let (width, expandedWidth) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributesCopy.indexPath)
-            frame.size.width = width
-            if (0 < offsetX) {
-                frame.origin.x = offsetX
-            }
-            
             if 0 < expandedWidth {
-                passingExpandedItem = true
-                halfOfExpandedWidth = expandedWidth / 2
-                frame.origin.x = frame.origin.x - halfOfExpandedWidth
+                frame = expandFrame(frame, width: width, expandedWidth: expandedWidth, offsetX: offsetX)
+            } else {
+                frame = modifyFrame(frame, width: width, offsetX: offsetX)
             }
             
             offsetX = frame.maxX + spacing
@@ -504,6 +545,8 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
         let closest = layoutAttributes!.sorted { abs($0.center.x - proposedContentOffsetCenterOrigin) < abs($1.center.x - proposedContentOffsetCenterOrigin) }.first ?? UICollectionViewLayoutAttributes()
         
         let targetContentOffset = CGPoint(x: floor(closest.center.x - center), y: proposedContentOffset.y)
+        
+        self.targetContentOffset = targetContentOffset
         
         return targetContentOffset
     }
