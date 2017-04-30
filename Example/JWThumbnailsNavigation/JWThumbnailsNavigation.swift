@@ -321,7 +321,7 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
     func scrollStateMachine(_ stateMachine: JWScrollStateMachine, didChangeState state: JWScrollState) {
         switch state {
         case .dragging:
-            if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
+            if let indexPath = self.thumbnailsCollectionView.jw_indexPathForVisibleCenter() {
                 if lastIndexOfScrollingItem != indexPath.item {
                     if debug {
                         print("navigation didDrag: \(indexPath.item)")
@@ -331,7 +331,7 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                 }
             }
         case .decelerating:
-            if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
+            if let indexPath = self.thumbnailsCollectionView.jw_indexPathForVisibleCenter() {
                 if lastIndexOfScrollingItem != indexPath.item {
                     if debug {
                         print("navigation didScroll: \(indexPath.item)")
@@ -341,7 +341,7 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                 }
             }
         case .stop:
-            if let indexPath = self.thumbnailsCollectionView.indexPathForVisibleCenter() {
+            if let indexPath = self.thumbnailsCollectionView.jw_indexPathForVisibleCenter() {
                 if debug {
                     print("navigation didSelect: \(indexPath.item)")
                 }
@@ -570,7 +570,7 @@ private class CustomCollectionView: UICollectionView {
 }
 
 private extension UICollectionView {
-    func indexPathForVisibleCenter() -> IndexPath? {
+    func jw_indexPathForVisibleCenter() -> IndexPath? {
         var visibleRect = CGRect()
         visibleRect.origin = self.contentOffset
         visibleRect.size = self.bounds.size
