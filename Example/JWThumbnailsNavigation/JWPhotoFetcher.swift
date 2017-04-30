@@ -41,7 +41,6 @@ class JWPhotoFetcher: NSObject, PHPhotoLibraryChangeObserver {
         
         let options = PHImageRequestOptions()
         options.deliveryMode = preferredLowQuality ? .fastFormat : .highQualityFormat
-        options.isNetworkAccessAllowed = true
         
         self.imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, options: options, resultHandler: { (result, info) in
 //            dump(info)
