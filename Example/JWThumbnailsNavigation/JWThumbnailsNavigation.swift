@@ -49,7 +49,7 @@ class JWThumbnailsNavigation: UIView {
     
     fileprivate let imageManager = PHImageManager()
     
-    fileprivate var photos: PHFetchResult<PHAsset>?
+    fileprivate var photos: Array<PHAsset>?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -87,7 +87,7 @@ extension JWThumbnailsNavigation {
 
 extension JWThumbnailsNavigation {
 
-    func setPhotos(_ photos: PHFetchResult<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int = 0) {
+    func setPhotos(_ photos: Array<PHAsset>?, andIndexOfSelectedItem indexOfSelectedItem: Int = 0) {
         if debug {
             print(#function)
         }
