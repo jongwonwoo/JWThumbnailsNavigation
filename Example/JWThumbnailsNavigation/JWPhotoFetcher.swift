@@ -38,15 +38,15 @@ class JWPhotoFetcher: NSObject, PHPhotoLibraryChangeObserver {
     }
     
     func fetchPhoto(for asset: PHAsset, targetSize: CGSize, contentMode: PHImageContentMode, preferredLowQuality: Bool, completion: @escaping (UIImage?, Bool) -> Swift.Void) {
-        self.imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, options: nil, resultHandler: { (result, info) in
-            let isDegraded :NSNumber = info?[PHImageResultIsDegradedKey] as! NSNumber
-            if (preferredLowQuality) {
-                if (isDegraded.boolValue) {
-                    completion(result, isDegraded.boolValue)
-                }
-            } else {
-                completion(result, isDegraded.boolValue)
-            }
+        
+        let options = PHImageRequestOptions()
+        options.deliveryMode = preferredLowQuality ? .fastFormat : .highQualityFormat
+        options.isNetworkAccessAllowed = true
+        
+        self.imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: contentMode, options: options, resultHandler: { (result, info) in
+//            dump(info)
+            let isDegraded = info?[PHImageResultIsDegradedKey] as! NSNumber
+            completion(result, isDegraded.boolValue)
         })
     }
     
