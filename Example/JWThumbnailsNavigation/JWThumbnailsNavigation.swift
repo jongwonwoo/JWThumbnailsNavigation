@@ -426,7 +426,7 @@ extension JWThumbnailsNavigation: UICollectionViewDelegateFlowLayout, JWThumbnai
     }
 }
 
-protocol JWThumbnailsNavigationFlowLayoutDelegate {
+protocol JWThumbnailsNavigationFlowLayoutDelegate: NSObjectProtocol {
     
     func collectionViewTargetIndexPath(_ collectionView: UICollectionView) -> IndexPath?
     func collectionView(_ collectionView: UICollectionView, itemWidthAtIndexPath indexPath: IndexPath) -> (width: CGFloat, expandedWidth: CGFloat)
@@ -435,7 +435,7 @@ protocol JWThumbnailsNavigationFlowLayoutDelegate {
 
 
 class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
-    var delegate: JWThumbnailsNavigationFlowLayoutDelegate!
+    weak var delegate: JWThumbnailsNavigationFlowLayoutDelegate!
     var targetContentOffset: CGPoint?
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
