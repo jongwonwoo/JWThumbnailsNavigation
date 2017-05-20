@@ -534,14 +534,11 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     }
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
-//        print(#function)
-        
         let center = collectionView!.bounds.size.width / 2
         let proposedContentOffsetCenterOrigin = proposedContentOffset.x + center
-        
-        let layoutAttributes = self.layoutAttributesForElements(in: collectionView!.bounds)
+        let targetRect = CGRect(x:proposedContentOffset.x, y:0, width:self.collectionView!.bounds.size.width, height:self.collectionView!.bounds.size.height)
+        let layoutAttributes = self.layoutAttributesForElements(in: targetRect)
         let closest = layoutAttributes!.sorted { abs($0.center.x - proposedContentOffsetCenterOrigin) < abs($1.center.x - proposedContentOffsetCenterOrigin) }.first ?? UICollectionViewLayoutAttributes()
-        
         let targetContentOffset = CGPoint(x: floor(closest.center.x - center), y: proposedContentOffset.y)
         
         self.targetContentOffset = targetContentOffset
