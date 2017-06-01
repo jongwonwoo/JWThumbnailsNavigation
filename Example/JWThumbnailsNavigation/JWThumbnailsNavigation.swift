@@ -13,6 +13,7 @@ import Photos
     
     @objc optional func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didDragItemAt index: Int)
     @objc optional func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didScrollItemAt index: Int)
+    @objc optional func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, willSelectItemAt index: Int)
     @objc optional func thumbnailsNavigation(_ navigation: JWThumbnailsNavigation, didSelectItemAt index: Int)
     
 }
@@ -28,24 +29,8 @@ class JWThumbnailsNavigation: UIView {
     
     fileprivate var scrollStateMachine: JWScrollStateMachine = JWScrollStateMachine()
     fileprivate var lastIndexOfScrollingItem: Int = -1
-    fileprivate var indexPathOfSelectedItem: IndexPath? {
-        willSet {
-            guard let indexPath = indexPathOfSelectedItem else { return }
-            
-            if let cell = self.thumbnailsCollectionView.cellForItem(at: indexPath) as? ImageCollectionViewCell {
-                cell.selectedCell = false
-            }
-        }
-        didSet {
-            guard let indexPath = indexPathOfSelectedItem else { return }
-            
-            if let cell = self.thumbnailsCollectionView.cellForItem(at: indexPath) as? ImageCollectionViewCell {
-                cell.selectedCell = true
-            }
-        }
-    }
-    
     fileprivate var indexPathOfPrefferedItem: IndexPath?
+    fileprivate var indexPathOfSelectedItem: IndexPath?
     
     fileprivate let imageManager = PHImageManager()
     
@@ -219,6 +204,8 @@ extension JWThumbnailsNavigation: UICollectionViewDataSource, UICollectionViewDe
         return cell
     }
     
+    //TODO: prefetching
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         selectThumbnailAtIndexPath(indexPath, fireEvent: true)
         scrollToItem(at: indexPath, animated: true)
@@ -335,7 +322,15 @@ extension JWThumbnailsNavigation: JWScrollStateMachineDelegate {
                         print("navigation didScroll: \(indexPath.item)")
                     }
                     lastIndexOfScrollingItem = indexPath.item
-                    delegate?.thumbnailsNavigation?(self, didScrollItemAt: indexPath.item)
+                    
+                    if let targetIndexPath = indexPathOfPrefferedItem {
+                        if abs(lastIndexOfScrollingItem - targetIndexPath.item) <= 1 {
+                            delegate?.thumbnailsNavigation?(self, willSelectItemAt: lastIndexOfScrollingItem)
+                            break
+                        }
+                    }
+                    
+                    delegate?.thumbnailsNavigation?(self, didScrollItemAt: lastIndexOfScrollingItem)
                 }
             }
         case .stop:
@@ -436,7 +431,12 @@ protocol JWThumbnailsNavigationFlowLayoutDelegate: NSObjectProtocol {
 
 class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
     weak var delegate: JWThumbnailsNavigationFlowLayoutDelegate!
+
     var targetContentOffset: CGPoint?
+
+    override class var layoutAttributesClass : AnyClass {
+        return ThumbnailLayoutAttributes.self
+    }
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
 //        print(#function)
@@ -450,25 +450,28 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
         var passingExpandedItem = false
         var halfOfExpandedWidth: CGFloat = 0
         
-        func expandFrame(_ frame: CGRect, width: CGFloat, expandedWidth: CGFloat, offsetX: CGFloat) -> CGRect {
+        func expandFrame(_ frame: CGRect, width: CGFloat, expandedWidth: CGFloat, offsetX: CGFloat) -> (CGRect, Bool) {
             var expandedFrame: CGRect?
+            var selected: Bool = false
             
             if let targetContentOffset = self.targetContentOffset {
                 if let contentOffset = collectionView?.contentOffset {
-                    let threshold: CGFloat = 5
+                    let threshold: CGFloat = width
                     if abs(targetContentOffset.x - contentOffset.x) < threshold {
                         expandedFrame = expandFrame(frame, width: width, expandedWidth: expandedWidth)
+                        selected = true
                     }
                 }
             } else {
                 expandedFrame = expandFrame(frame, width: width, expandedWidth: expandedWidth)
+                selected = true
             }
             
             if expandedFrame == nil {
                 expandedFrame = modifyFrame(frame, width: width, offsetX: offsetX)
             }
             
-            return expandedFrame!
+            return (expandedFrame!, selected)
         }
         
         func expandFrame(_ frame: CGRect, width: CGFloat, expandedWidth: CGFloat) -> CGRect {
@@ -504,9 +507,16 @@ class JWThumbnailsNavigationFlowLayout: UICollectionViewFlowLayout {
             var frame = itemAttributesCopy.frame
             let (width, expandedWidth) = delegate.collectionView(collectionView!, itemWidthAtIndexPath: itemAttributesCopy.indexPath)
             if 0 < expandedWidth {
-                frame = expandFrame(frame, width: width, expandedWidth: expandedWidth, offsetX: offsetX)
+                var selected = false
+                (frame, selected) = expandFrame(frame, width: width, expandedWidth: expandedWidth, offsetX: offsetX)
+                if let att = itemAttributesCopy as? ThumbnailLayoutAttributes {
+                    att.selected = selected
+                }
             } else {
                 frame = modifyFrame(frame, width: width, offsetX: offsetX)
+                if let att = itemAttributesCopy as? ThumbnailLayoutAttributes {
+                    att.selected = false
+                }
             }
             
             offsetX = frame.maxX + spacing
@@ -574,6 +584,25 @@ private extension UICollectionView {
     }
 }
 
+class ThumbnailLayoutAttributes: UICollectionViewLayoutAttributes {
+    var selected: Bool = false
+    
+    override func copy(with zone: NSZone? = nil) -> Any {
+        let copy = super.copy(with: zone) as! ThumbnailLayoutAttributes
+        copy.selected = selected
+        return copy
+    }
+    
+    override func isEqual(_ object: Any?) -> Bool {
+        if let attributes = object as? ThumbnailLayoutAttributes {
+            if attributes.selected == selected {
+                return super.isEqual(object)
+            }
+        }
+        return false
+    }
+}
+
 private class ImageCollectionViewCell: UICollectionViewCell {
     private var imageView: UIImageView?
     
@@ -584,17 +613,6 @@ private class ImageCollectionViewCell: UICollectionViewCell {
             }
             
             self.imageView?.image = image
-        }
-    }
-    
-    var selectedCell: Bool = false {
-        didSet {
-            if selectedCell {
-                self.layer.borderColor = UIColor.white.cgColor
-                self.layer.borderWidth = 3.0
-            } else {
-                self.layer.borderWidth = 0.0
-            }
         }
     }
     
@@ -613,7 +631,18 @@ private class ImageCollectionViewCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         self.imageView?.image = nil
-        self.selectedCell = false
+        self.layer.borderWidth = 0.0
+    }
+    
+    override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
+        if let attributes = layoutAttributes as? ThumbnailLayoutAttributes {
+            if attributes.selected {
+                self.layer.borderColor = UIColor.white.cgColor
+                self.layer.borderWidth = 3.0
+            } else {
+                self.layer.borderWidth = 0.0
+            }
+        }
     }
     
 }
