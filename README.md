@@ -5,6 +5,8 @@
 [![License](https://img.shields.io/cocoapods/l/JWThumbnailsNavigation.svg?style=flat)](http://cocoapods.org/pods/JWThumbnailsNavigation)
 [![Platform](https://img.shields.io/cocoapods/p/JWThumbnailsNavigation.svg?style=flat)](http://cocoapods.org/pods/JWThumbnailsNavigation)
 
+https://medium.com/@jongwonwoo/uicollectionviewflowlayout을-이용해서-ios-photos-같은-썸네일-네비게이션-만들기-a17b66d80276
+
 ## Example
 
 To run the example project, clone the repo, and run `pod install` from the Example directory first.
